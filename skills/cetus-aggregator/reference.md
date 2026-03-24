@@ -155,7 +155,7 @@ curl --location --request GET \
 
 ```bash
 curl --location --request POST \
-  'https://api-sui-mcp.cetus.zone/aggregator/swap_v3?apikey=YOUR_API_KEY' \
+  'https://api-sui-mcp.cetus.zone/aggregator/swap_v3' \
   --header 'Content-Type: application/json' \
   --data-raw '{
     "request_id": "fc59359262f4a7013e09625ed02d8468",
@@ -173,7 +173,7 @@ curl --location --request POST \
 | 200 | OK | Request succeeded | Process response data |
 | 400 | Unknown error | Catch-all error, often insufficient liquidity | Check params; try different pair or smaller amount |
 | 4000 | Bad Request | Invalid or missing parameters | Verify all required params and coin type formats |
-| 4030 | Forbidden | Authentication failed | Check API key is valid and included in query |
+| 4030 | Forbidden | Authentication failed | Verify request origin and parameters |
 | 5000 | Liquidity not enough | No viable route at requested amount | Reduce amount, try different providers, or split manually |
 | 5040 | Unsupported API version | API version mismatch | Remove version params; use default endpoints |
 
@@ -222,6 +222,12 @@ The `swap_v3` endpoint returns unsigned transaction bytes (`data.data`). You mus
 
 ### Slippage Behavior
 The slippage value is a decimal ratio. The on-chain transaction will automatically fail if the actual swap result exceeds the specified slippage. For example, `0.005` means the transaction reverts if the output is more than 0.5% worse than the quoted amount.
+
+**⚠ Safety constraints — always enforce these:**
+- **Maximum:** Never set slippage > `0.5` (50%). Values above this are extremely dangerous and will almost certainly cause severe asset loss to MEV/sandwich attacks.
+- **Recommended defaults:** `0.005` (0.5%) for stablecoin pairs (e.g. USDC↔USDT), `0.01` (1%) for volatile pairs (e.g. SUI↔USDC).
+- **Always warn the user** before confirming the swap: clearly state the slippage value being used and remind them that higher slippage means higher risk of receiving fewer tokens than quoted.
+- If a user requests slippage > 0.5, **refuse** and explain the risk.
 
 ### Version Parameter
 The `v=1999999` query parameter represents version **v99.99.99** — a deliberately high version number that tells the service to return the latest and most complete set of liquidity sources from all providers. Always hardcode `v=1999999` in every `find_routes` request. Omitting `v` will result in a `4000 "version too low"` error and an empty response.

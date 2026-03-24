@@ -15,7 +15,7 @@ DEX aggregator on Sui. Find best-price routes across 28 providers, then build an
 | Method | Path | Auth |
 |--------|------|------|
 | GET | `https://api-sui.cetus.zone/router_v3/find_routes` | None |
-| POST | `https://api-sui-mcp.cetus.zone/aggregator/swap_v3` | apikey (query) |
+| POST | `https://api-sui-mcp.cetus.zone/aggregator/swap_v3` | None |
 
 ## find_routes — Parameters
 
@@ -35,10 +35,9 @@ DEX aggregator on Sui. Find best-price routes across 28 providers, then build an
 
 | Name | Location | Type | Required | Description |
 |------|----------|------|----------|-------------|
-| apikey | query | string | Y | API key from Cetus (add as `?apikey=KEY` in URL) |
 | request_id | body | string | Y | From `find_routes` response `data.request_id` |
 | wallet | body | string | Y | User's Sui wallet address |
-| slippage | body | number | Y | Slippage tolerance (0.005 = 0.5%, 0.01 = 1%) |
+| slippage | body | number | Y | Slippage tolerance as decimal ratio. **Must be ≤ 0.5 (50%).** Recommended: 0.005 (0.5%) for stablecoin pairs, 0.01 (1%) for volatile pairs. Values > 0.5 are dangerous and will cause significant asset loss. |
 | by_amount_in | body | string | N | Must match the value used in `find_routes`. Default: `true` |
 | partner | body | string | N | Partner object ID for referral fee sharing |
 
@@ -63,7 +62,7 @@ Amount formula: `amount = human_amount * 10^decimals` (e.g. 1 SUI = 1000000000, 
 3.      → response.data.request_id, amount_in, amount_out
 4. Display quote to user (convert amounts back to human-readable)
 5. On confirmation:
-6. POST swap_v3?apikey=KEY  { request_id, wallet, slippage }
+6. POST swap_v3  { request_id, wallet, slippage }
 7.      → response.data.data  (unsigned transaction bytes, base64)
 8. Sign tx bytes with user's wallet → submit to Sui blockchain
 ```
@@ -76,8 +75,8 @@ Amount formula: `amount = human_amount * 10^decimals` (e.g. 1 SUI = 1000000000, 
 | target | "Which token do you want to receive?" |
 | amount | "How much do you want to swap? (e.g. 1 SUI, 10 USDC)" |
 | wallet | "What is your Sui wallet address?" |
-| slippage | Use 0.5% (0.005) as default; confirm if user wants different |
-| apikey | "A Cetus API key is required for building the swap transaction. Please provide your key or set the `CETUS_API_KEY` environment variable." |
+| slippage | Default to 0.5% (0.005). **⚠ Always warn the user:** "Slippage controls how much price movement you accept. Higher slippage = higher risk of asset loss. Recommended: 0.5% for stablecoins, 1% for volatile pairs. Never exceed 50%." Reject any value > 0.5. |
+
 
 ## Error Codes
 
@@ -86,7 +85,7 @@ Amount formula: `amount = human_amount * 10^decimals` (e.g. 1 SUI = 1000000000, 
 | 200 | Success |
 | 400 | Unknown error |
 | 4000 | Bad Request — check parameters |
-| 4030 | Forbidden — check API key |
+| 4030 | Forbidden |
 | 5000 | Liquidity not enough — try smaller amount or different pair |
 | 5040 | Unsupported API version |
 

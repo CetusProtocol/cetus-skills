@@ -14,7 +14,6 @@ Claude Code skills for interacting with the [Cetus Protocol](https://www.cetus.z
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CETUS_API_KEY` | For swap_v3 | API key for building swap transactions ([contact Cetus](https://www.cetus.zone/)) |
 | `SUI_WALLET_ADDRESS` | For swap_v3 | Your Sui wallet address for transaction building |
 
 ### Installation
