@@ -3,5 +3,5 @@ node_modules/
 .env.*
 !.env.example
 .DS_Store
-.claude
+.claude/settings.local*
 .cursor
