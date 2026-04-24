@@ -7,17 +7,18 @@ Detailed parameter schemas, Move contract examples, and integration patterns.
 ### Installation
 
 ```bash
-npm install @cetusprotocol/sui-clmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
 
 ### SDK Initialization
 
 ```typescript
 import { CetusClmmSDK } from '@cetusprotocol/sui-clmm-sdk'
+import { clmmMainnet } from '@cetusprotocol/common-sdk'
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519'
 
 // Initialize SDK for mainnet (SDK v2)
-const sdk = CetusClmmSDK.createSDK({ env: 'mainnet' })
+const sdk = CetusClmmSDK.createSDK(clmmMainnet)
 
 // Set signer (for sending transactions)
 const signer = Ed25519Keypair.fromSecretKey(yourSecretKey)
@@ -61,7 +62,7 @@ Create a new CLMM pool with specified tick spacing and initial price.
 
 ```typescript
 import BN from 'bn.js'
-import { ClmmPoolUtil, TickMath, d } from '@cetusprotocol/sui-clmm-sdk'
+import { ClmmPoolUtil, TickMath, d } from '@cetusprotocol/common-sdk'
 
 // Define coin types
 const coin_type_a = '0x2::sui::SUI'
@@ -106,8 +107,8 @@ const amount_a = fix_amount_a ? fix_coin_amount.toNumber() : liquidity_input.coi
 const amount_b = fix_amount_a ? liquidity_input.coin_amount_limit_b.toNumber() : fix_coin_amount.toNumber()
 
 // Get coin metadata
-const coinMetadataA = await sdk.fullClient.getCoinMetadata({ coinType: coin_type_a })
-const coinMetadataB = await sdk.fullClient.getCoinMetadata({ coinType: coin_type_b })
+const coinMetadataA = await sdk.FullClient.getCoinMetadata({ coinType: coin_type_a })
+const coinMetadataB = await sdk.FullClient.getCoinMetadata({ coinType: coin_type_b })
 
 // Build transaction
 const create_pool_payload = sdk.Pool.createPoolPayload({
@@ -126,7 +127,7 @@ const create_pool_payload = sdk.Pool.createPoolPayload({
 })
 
 // Execute transaction
-const txn = await sdk.fullClient.sendTransaction(signer, create_pool_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, create_pool_payload)
 console.log('Pool created:', txn.digest)
 ```
 
@@ -265,7 +266,7 @@ Open empty position NFT within specified tick range.
 
 ```typescript
 import BN from 'bn.js'
-import { TickMath } from '@cetusprotocol/sui-clmm-sdk'
+import { TickMath } from '@cetusprotocol/common-sdk'
 
 // Get pool
 const pool = await sdk.Pool.getPool(poolAddress)
@@ -286,7 +287,7 @@ const open_position_payload = sdk.Position.openPositionPayload({
   coin_type_b: pool.coin_type_b,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, open_position_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, open_position_payload)
 console.log('Position opened:', txn.digest)
 ```
 
@@ -378,7 +379,7 @@ Close position, remove all liquidity, and collect fees.
 **SDK Example (TypeScript)**:
 ```typescript
 import BN from 'bn.js'
-import { ClmmPoolUtil, TickMath, Percentage, adjustForCoinSlippage } from '@cetusprotocol/sui-clmm-sdk'
+import { ClmmPoolUtil, TickMath, Percentage, adjustForCoinSlippage } from '@cetusprotocol/common-sdk'
 
 // Inputs
 const pos_id = '0x...' // Position NFT object id
@@ -420,7 +421,7 @@ const close_position_payload = await sdk.Position.closePositionPayload({
   collect_fee: true,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, close_position_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, close_position_payload)
 console.log('Position closed:', txn.digest)
 ```
 
@@ -483,7 +484,7 @@ Add liquidity by specifying fixed coin amount.
 
 ```typescript
 import BN from 'bn.js'
-import { ClmmPoolUtil } from '@cetusprotocol/sui-clmm-sdk'
+import { ClmmPoolUtil } from '@cetusprotocol/common-sdk'
 
 // Get position info
 const positionAddress = '0x...' // Position NFT object ID
@@ -527,7 +528,7 @@ const add_liquidity_payload_params = {
 }
 const add_liquidity_payload = await sdk.Position.createAddLiquidityFixTokenPayload(add_liquidity_payload_params)
 
-const txn = await sdk.fullClient.sendTransaction(signer, add_liquidity_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, add_liquidity_payload)
 console.log('Liquidity added:', txn.digest)
 ```
 
@@ -581,7 +582,7 @@ Remove liquidity from position with slippage protection.
 **SDK Example (TypeScript)**:
 ```typescript
 import BN from 'bn.js'
-import { ClmmPoolUtil, TickMath, Percentage, adjustForCoinSlippage } from '@cetusprotocol/sui-clmm-sdk'
+import { ClmmPoolUtil, TickMath, Percentage, adjustForCoinSlippage } from '@cetusprotocol/common-sdk'
 
 // Inputs
 const pos_id = '0x...' // Position NFT object id
@@ -625,7 +626,7 @@ const remove_liquidity_payload = await sdk.Position.removeLiquidityPayload({
   collect_fee: true,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, remove_liquidity_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, remove_liquidity_payload)
 console.log('Liquidity removed:', txn.digest)
 ```
 
@@ -679,7 +680,7 @@ Swap coin A to coin B in single pool.
 
 ```typescript
 import BN from 'bn.js'
-import { adjustForSlippage, d, Percentage } from '@cetusprotocol/sui-clmm-sdk'
+import { adjustForSlippage, d, Percentage } from '@cetusprotocol/common-sdk'
 
 // Get pool
 const poolAddress = '0x...' // SUI-USDC pool
@@ -724,7 +725,7 @@ const swap_payload = sdk.Swap.createSwapPayload({
   amount_limit: amountLimit.toString(),
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, swap_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, swap_payload)
 console.log('Swap completed:', txn.digest)
 ```
 
@@ -866,7 +867,7 @@ const collect_rewarder_params = {
 }
 
 const collect_rewarder_payload = await sdk.Rewarder.collectRewarderPayload(collect_rewarder_params)
-const txn = await sdk.fullClient.sendTransaction(signer, collect_rewarder_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, collect_rewarder_payload)
 console.log('Fees (and rewards) collected:', txn.digest)
 ```
 
@@ -922,7 +923,7 @@ const collect_rewarder_params = {
 }
 
 const collect_rewarder_payload = await sdk.Rewarder.collectRewarderPayload(collect_rewarder_params)
-const txn = await sdk.fullClient.sendTransaction(signer, collect_rewarder_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, collect_rewarder_payload)
 console.log('Rewards collected:', txn.digest)
 ```
 
@@ -936,6 +937,7 @@ console.log('Rewards collected:', txn.digest)
 | pool | &mut Pool<A, B> | Y | Pool object |
 | position_nft | &mut Position | Y | Position NFT |
 | vault | &mut RewarderGlobalVault | Y | Reward vault object |
+| collect_fee | bool | Y | true = also collect LP fees in same call |
 | clock | &Clock | Y | Sui clock object |
 
 **Move Example**:

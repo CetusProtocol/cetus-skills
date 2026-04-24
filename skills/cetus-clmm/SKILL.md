@@ -15,8 +15,10 @@ Concentrated Liquidity Market Maker (CLMM) on Sui. Create pools, manage liquidit
 ## SDK Installation
 
 ```bash
-npm install @cetusprotocol/sui-clmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+Tested version pair: `@cetusprotocol/common-sdk@1.3.3` + `@cetusprotocol/sui-clmm-sdk@1.4.1`.
 
 ## Core Concepts
 
@@ -87,8 +89,8 @@ npm install @cetusprotocol/sui-clmm-sdk
 | config | &GlobalConfig | Global CLMM configuration object |
 | pool | &mut Pool<A, B> | Pool object for coin pair |
 | position_nft | &mut Position | Position NFT object |
-| tick_lower | u32 | Lower tick index of position range |
-| tick_upper | u32 | Upper tick index of position range |
+| tick_lower | I32 | Lower tick index of position range (signed, can be negative) |
+| tick_upper | I32 | Upper tick index of position range (signed, can be negative) |
 | delta_liquidity | u128 | Amount of liquidity to add/remove |
 | amount | u64 | Coin amount (smallest unit) |
 | fix_amount_a | bool | true = fix coin A amount, false = fix coin B amount |

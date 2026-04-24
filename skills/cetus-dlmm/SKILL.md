@@ -15,8 +15,10 @@ Dynamic Liquidity Market Maker (DLMM) on Sui. Create pools with dynamic fees, ma
 ## SDK Installation
 
 ```bash
-npm install @cetusprotocol/dlmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/dlmm-sdk@1.2.6`, `@cetusprotocol/sui-clmm-sdk@1.4.1`.
 
 ## Core Concepts
 

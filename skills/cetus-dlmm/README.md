@@ -17,17 +17,22 @@ This skill enables you to:
 ### Installation
 
 ```bash
-npm install @cetusprotocol/dlmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/dlmm-sdk@1.2.6`, `@cetusprotocol/sui-clmm-sdk@1.4.1`.
+
+Known compatibility note: with other version combinations, `sdk.Pool.getPool(...)` and `sdk.Swap.preSwapQuote(...)` may fail because `dlmm-sdk@1.2.6` is sensitive to `common-sdk` API changes. Use the pinned versions above when CLMM and DLMM are installed in the same workspace.
 
 ### Basic Usage
 
 **Create a pool:**
 ```typescript
 import { CetusDlmmSDK, BinUtils } from '@cetusprotocol/dlmm-sdk'
+import { dlmmMainnet } from '@cetusprotocol/common-sdk'
 import { Transaction } from '@mysten/sui/transactions'
 
-const sdk = CetusDlmmSDK.createSDK({ env: 'mainnet' })
+const sdk = CetusDlmmSDK.createSDK(dlmmMainnet)
 
 const bin_step = 2
 const active_id = BinUtils.getBinIdFromPrice('2.5', bin_step, true, 9, 6)

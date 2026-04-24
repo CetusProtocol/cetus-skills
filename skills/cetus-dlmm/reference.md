@@ -7,17 +7,20 @@ Detailed parameter schemas, SDK v2 examples, Move contract examples, and integra
 ### Installation
 
 ```bash
-npm install @cetusprotocol/dlmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+Use the pinned versions above when CLMM and DLMM are installed together. Other dependency combinations have been observed to break `sdk.Pool.getPool(...)` and `sdk.Swap.preSwapQuote(...)`.
 
 ### SDK Initialization
 
 ```typescript
 import { CetusDlmmSDK } from '@cetusprotocol/dlmm-sdk'
+import { dlmmMainnet } from '@cetusprotocol/common-sdk'
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519'
 
 // Initialize SDK for mainnet (SDK v2)
-const sdk = CetusDlmmSDK.createSDK({ env: 'mainnet' })
+const sdk = CetusDlmmSDK.createSDK(dlmmMainnet)
 
 // Set signer (for sending transactions)
 const signer = Ed25519Keypair.fromSecretKey(yourSecretKey)
@@ -87,7 +90,7 @@ const create_pool_payload = sdk.Pool.createPoolPayload({
 }, new Transaction())
 
 // Execute transaction
-const txn = await sdk.fullClient.sendTransaction(signer, create_pool_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, create_pool_payload)
 console.log('Pool created:', txn.digest)
 ```
 
@@ -172,7 +175,7 @@ const open_position_payload = await sdk.Position.openPositionPayload({
   strategy_type: StrategyType.Spot,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, open_position_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, open_position_payload)
 console.log('Position opened:', txn.digest)
 ```
 
@@ -313,7 +316,7 @@ const add_liquidity_payload = await sdk.Position.addLiquidityPayload({
   strategy_type: StrategyType.Spot,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, add_liquidity_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, add_liquidity_payload)
 console.log('Liquidity added:', txn.digest)
 ```
 
@@ -396,7 +399,7 @@ const remove_payload = await sdk.Position.removeLiquidityPayload({
   liquidity_shares: ['50000000', '50000000', '50000000'],
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, remove_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, remove_payload)
 console.log('Liquidity removed:', txn.digest)
 ```
 
@@ -448,6 +451,58 @@ public entry fun remove_half_liquidity(
 }
 ```
 
+### remove_liquidity_by_percent
+
+Remove a percentage of liquidity from position bins (direct call).
+
+**Module**: `cetusdlmm::pool`
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| config | &GlobalConfig | Y | Global DLMM config object |
+| pool | &mut Pool<A, B> | Y | Pool object |
+| position | &mut Position | Y | Position NFT |
+| bins | vector<I32> | Y | Bin IDs to remove from |
+| percent | u64 | Y | Percentage to remove (e.g., 5000 = 50%, basis points * 100) |
+| versioned | &Versioned | Y | Version control object |
+| clock | &Clock | Y | Sui clock object |
+
+**Move Example**:
+
+```move
+use cetusdlmm::pool;
+use integer_mate::i32;
+
+public entry fun remove_half_by_percent(
+    config: &GlobalConfig,
+    pool: &mut Pool<SUI, USDC>,
+    position: &mut Position,
+    versioned: &Versioned,
+    clock: &Clock,
+    ctx: &mut TxContext
+) {
+    let bins = vector[i32::from(23000), i32::from(23001), i32::from(23002)];
+
+    let (coin_a, coin_b) = pool::remove_liquidity_by_percent<SUI, USDC>(
+        config,
+        pool,
+        position,
+        bins,
+        5000,   // 50% (basis points * 100: 10000 = 100%)
+        versioned,
+        clock,
+        ctx
+    );
+
+    transfer::public_transfer(coin_a, ctx.sender());
+    transfer::public_transfer(coin_b, ctx.sender());
+}
+```
+
+---
+
 ### close_position
 
 Close position, remove all liquidity, and collect fees.
@@ -463,7 +518,7 @@ const close_payload = await sdk.Position.closePositionPayload({
   coin_type_b: pool.coin_type_b,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, close_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, close_payload)
 console.log('Position closed:', txn.digest)
 ```
 
@@ -516,7 +571,7 @@ Swap coin A to coin B using router wrapper.
 **SDK Example (TypeScript)**:
 
 ```typescript
-import { Percentage} from '@cetusprotocol/common-sdk'
+import { Percentage, d } from '@cetusprotocol/common-sdk'
 // Get pool
 const poolAddress = '0x...' // SUI-USDC pool
 const pool = await sdk.Pool.getPool(poolAddress)
@@ -548,7 +603,7 @@ const swap_payload = sdk.Swap.swapPayload({
   slippage: slippage, // 1%
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, swap_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, swap_payload)
 console.log('Swap completed:', txn.digest)
 ```
 
@@ -618,7 +673,7 @@ const collect_fee_payload = await sdk.Position.collectFeePayload({
   coin_type_b: pool.coin_type_b,
 })
 
-const txn = await sdk.fullClient.sendTransaction(signer, collect_fee_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, collect_fee_payload)
 console.log('Fees collected:', txn.digest)
 ```
 
@@ -677,7 +732,7 @@ const collect_payload = await sdk.Position.collectRewardAndFeePayload([{
   coin_type_b: pool.coin_type_b,
 }])
 
-const txn = await sdk.fullClient.sendTransaction(signer, collect_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, collect_payload)
 console.log('Rewards and fees collected:', txn.digest)
 ```
 
@@ -940,7 +995,7 @@ Dynamic fees increase with volatility:
 | SUI | 9 | `0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI` | 1,000,000,000 |
 | USDC | 6 | `0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC` | 1,000,000 |
 | USDT | 6 | `0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN` | 1,000,000 |
-| CETUS | 9 | `0x06864a6f921804860930db8b81a69436cf7d1638629c9ccb921326039cda1f1b::cetus::CETUS` | 1,000,000,000 |
+| CETUS | 9 | `0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS` | 1,000,000,000 |
 | DEEP | 6 | `0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP` | 1,000,000 |
 
 **Amount conversion**: `amount = human_amount * 10^decimals`

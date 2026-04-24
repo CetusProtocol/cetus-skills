@@ -52,12 +52,11 @@ cd cetus-skills
 For CLMM and DLMM skills, install the respective SDKs:
 
 ```bash
-# CLMM SDK
-npm install @cetusprotocol/sui-clmm-sdk
-
-# DLMM SDK
-npm install @cetusprotocol/dlmm-sdk
+# Tested compatible versions
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+This repository is currently written against the version matrix above. In particular, `@cetusprotocol/dlmm-sdk@1.2.6` should be paired with `@cetusprotocol/common-sdk@1.3.3` and `@cetusprotocol/sui-clmm-sdk@1.4.1` to avoid DLMM pool fetch and quote incompatibilities reported with other combinations.
 
 ## Environment Variables
 
@@ -112,8 +111,9 @@ See [cetus-aggregator README](skills/cetus-aggregator/README.md) for full integr
 
 ```typescript
 import { CetusClmmSDK } from '@cetusprotocol/sui-clmm-sdk'
+import { clmmMainnet } from '@cetusprotocol/common-sdk'
 
-const sdk = new CetusClmmSDK({ network: 'mainnet' })
+const sdk = CetusClmmSDK.createSDK(clmmMainnet)
 
 // Open position with liquidity
 const payload = await sdk.Position.openPositionWithLiquidityPayload({
@@ -131,8 +131,9 @@ See [cetus-clmm README](skills/cetus-clmm/README.md) for full examples.
 
 ```typescript
 import { CetusDlmmSDK, StrategyType } from '@cetusprotocol/dlmm-sdk'
+import { dlmmMainnet } from '@cetusprotocol/common-sdk'
 
-const sdk = CetusDlmmSDK.createSDK({ env: 'mainnet' })
+const sdk = CetusDlmmSDK.createSDK(dlmmMainnet)
 
 // Open position with Spot strategy
 const payload = await sdk.Position.openPositionPayload({

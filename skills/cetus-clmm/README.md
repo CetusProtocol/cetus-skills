@@ -17,8 +17,10 @@ This skill enables you to:
 ### Installation
 
 ```bash
-npm install @cetusprotocol/sui-clmm-sdk
+npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.1
 ```
+
+Tested version pair: `@cetusprotocol/common-sdk@1.3.3` + `@cetusprotocol/sui-clmm-sdk@1.4.1`.
 
 ### Basic Usage
 
