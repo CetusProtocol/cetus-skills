@@ -165,6 +165,7 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 | Object | Address |
 |--------|---------|
 | DLMM Package | `0x5664f9d3fd82c84023870cfbda8ea84e14c8dd56ce557ad2116e0668581a682b` |
+| DLMM Published At | `0x0489a4b326c17428d9ae6f10023468109b097f10e705af30ccc27bbb18ead065` |
 | Router Package | `0x36d7c12e8497cee9259dd6b0da9f8bbe955134d658a1e3e7c682d43c7a955125` |
 | GlobalConfig | `0xf31b605d117f959b9730e8c07b08b856cb05143c5e81d5751c90d2979e82f599` |
 | Registry | `0xb1d55e7d895823c65f98d99b81a69436cf7d1638629c9ccb921326039cda1f1b` |
