@@ -172,4 +172,15 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 | Versioned | `0x05370b2d656612dd5759cbe80463de301e3b94a921dfc72dd9daa2ecdeb2d0a8` |
 | Partners | `0x5c0affc8d363b6abb1f32790c229165215f4edead89a9bc7cd95dad717b4296a` |
 
-Detailed schemas and examples: [reference.md](reference.md).
+## Detailed Reference
+
+Domain-specific details live under [`reference/`](reference/) — load on demand.
+
+| Topic | File |
+|-------|------|
+| Pool creation & queries | [reference/pools.md](reference/pools.md) |
+| Open / close positions (Spot, Curve, BidAsk) | [reference/positions.md](reference/positions.md) |
+| Add / remove liquidity | [reference/liquidity.md](reference/liquidity.md) |
+| Swaps & slippage | [reference/swaps.md](reference/swaps.md) |
+| Fee & reward collection | [reference/fees-rewards.md](reference/fees-rewards.md) |
+| Bins, BinUtils, strategies, dynamic fees, common coins | [reference/concepts.md](reference/concepts.md) |

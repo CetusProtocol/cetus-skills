@@ -107,7 +107,7 @@ const tx = sdk.Swap.swapPayload({
 ## Documentation
 
 - **[SKILL.md](SKILL.md)** - Concise reference with operations table, parameters, and integration flows
-- **[reference.md](reference.md)** - Detailed schemas, SDK v2 examples, Move contract examples, and best practices
+- **[reference/](reference/)** - Domain-specific detail loaded on demand: pools, positions, liquidity, swaps, fees-rewards, concepts
 
 ## Key Concepts
 
