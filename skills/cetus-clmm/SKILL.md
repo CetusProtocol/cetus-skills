@@ -169,4 +169,15 @@ Partner fees accumulate in the Partner object and can be collected separately.
 | Partners | `0xac30897fa61ab442f6bff518c5923faa1123c94b36bd4558910e9c783adfa204` |
 | RewardVault | `0xce7bceef26d3ad1f6d9b6f13a953f053e6ed3ca77907516481ce99ae8e588f2b` |
 
-Detailed schemas and examples: [reference.md](reference.md).
+## Detailed Reference
+
+Domain-specific details live under [`reference/`](reference/) — load on demand.
+
+| Topic | File |
+|-------|------|
+| Pool creation & queries | [reference/pools.md](reference/pools.md) |
+| Open / close positions | [reference/positions.md](reference/positions.md) |
+| Add / remove liquidity | [reference/liquidity.md](reference/liquidity.md) |
+| Swaps & slippage | [reference/swaps.md](reference/swaps.md) |
+| Fee & reward collection | [reference/fees-rewards.md](reference/fees-rewards.md) |
+| Tick math, sqrt price, coin ordering, common coins | [reference/concepts.md](reference/concepts.md) |
