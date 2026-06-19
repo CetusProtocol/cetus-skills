@@ -29,6 +29,7 @@ Tested version pair: `@cetusprotocol/common-sdk@1.3.3` + `@cetusprotocol/sui-clm
 | Position | NFT representing liquidity within a specific tick range (tick_lower to tick_upper) |
 | Liquidity | Amount of capital provided to a position, measured as delta_liquidity |
 | Flash Swap | Borrow-repay mechanism allowing atomic swaps without upfront capital |
+| Flash Loan | Borrow either coin and repay principal + fee atomically in one tx; enforced by FlashLoanReceipt (CLMM-only — DLMM has no flash loan) |
 
 ## Operations
 
@@ -72,6 +73,15 @@ Tested version pair: `@cetusprotocol/common-sdk@1.3.3` + `@cetusprotocol/sui-clm
 | swap_a2b_with_partner | pool_script | Swap A→B with partner fee sharing |
 | swap_b2a_with_partner | pool_script | Swap B→A with partner fee sharing |
 | calculate_swap_result | fetcher_script | Calculate expected swap output without executing |
+
+### Flash Loan
+
+| Function | Module | Description |
+|----------|--------|-------------|
+| flash_loan | pool | Borrow either coin; returns balances + FlashLoanReceipt hot potato |
+| repay_flash_loan | pool | Repay principal + fee, consuming the receipt (same tx) |
+| flash_loan_with_partner | pool | Flash loan routing a referral fee to a Partner object |
+| repay_flash_loan_with_partner | pool | Repay a partner flash loan, settling the ref fee |
 
 ### Fee & Reward Collection
 
@@ -179,5 +189,6 @@ Domain-specific details live under [`reference/`](reference/) — load on demand
 | Open / close positions | [reference/positions.md](reference/positions.md) |
 | Add / remove liquidity | [reference/liquidity.md](reference/liquidity.md) |
 | Swaps & slippage | [reference/swaps.md](reference/swaps.md) |
+| Flash loan (borrow / repay) | [reference/flash-loan.md](reference/flash-loan.md) |
 | Fee & reward collection | [reference/fees-rewards.md](reference/fees-rewards.md) |
 | Tick math, sqrt price, coin ordering, common coins | [reference/concepts.md](reference/concepts.md) |
