@@ -142,6 +142,10 @@ Note: `published_at` addresses change with contract upgrades. Other object IDs r
 - `swap_*_with_partner` - Swaps with partner fee sharing
 - `calculate_swap_result` - Calculate expected output
 
+### Flash Loan
+- `flash_loan` / `repay_flash_loan` - Borrow either coin and repay principal + fee in one tx (CLMM-only)
+- `flash_loan_with_partner` / `repay_flash_loan_with_partner` - Flash loan with partner ref fee
+
 ### Fee & Reward Collection
 - `collect_fee` - Collect LP fees
 - `collect_reward` - Collect reward tokens

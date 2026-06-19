@@ -17,7 +17,7 @@ This repository contains Claude Code skills for all three protocols, enabling AI
 | Skill | Type | Description | Documentation |
 |-------|------|-------------|---------------|
 | **[cetus-aggregator](skills/cetus-aggregator/)** | API | Find optimal swap routes across 28 DEX providers and build swap transactions | [README](skills/cetus-aggregator/README.md) · [SKILL.md](skills/cetus-aggregator/SKILL.md) |
-| **[cetus-clmm](skills/cetus-clmm/)** | SDK | Create pools, manage positions, add/remove liquidity, swap tokens on CLMM | [README](skills/cetus-clmm/README.md) · [SKILL.md](skills/cetus-clmm/SKILL.md) |
+| **[cetus-clmm](skills/cetus-clmm/)** | SDK | Create pools, manage positions, add/remove liquidity, swap tokens, flash loans on CLMM | [README](skills/cetus-clmm/README.md) · [SKILL.md](skills/cetus-clmm/SKILL.md) |
 | **[cetus-dlmm](skills/cetus-dlmm/)** | SDK | Create pools, manage positions with strategies (Spot/Curve/BidAsk), swap on DLMM | [README](skills/cetus-dlmm/README.md) · [SKILL.md](skills/cetus-dlmm/SKILL.md) |
 
 ## Quick Comparison
