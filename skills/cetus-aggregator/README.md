@@ -10,6 +10,8 @@ This skill enables you to:
 - Build unsigned swap transactions with slippage protection
 - Compare prices and liquidity across multiple protocols
 
+Transaction building supports fixed input only. Use `by_amount_in=true` in `find_routes`; fixed-output quotes (`by_amount_in=false`) cannot be used to build transactions.
+
 ## Quick Start
 
 ### API Endpoints
@@ -117,7 +119,7 @@ Slippage controls how much price movement you accept during the swap:
 | from | Yes | Source coin type (full address) |
 | target | Yes | Target coin type (full address) |
 | amount | Yes | Amount in smallest unit |
-| by_amount_in | No | `true` = fix input (default), `false` = fix output |
+| by_amount_in | No | `true` = fixed input (default, required for transaction building). `false` = fixed output (quote only) |
 | v | Yes | Always use `1999999` for latest liquidity |
 | split_count | No | Order splitting (1-50, default 50) |
 | depth | No | Max routing hops (1-3, default 3) |

@@ -199,11 +199,8 @@ curl --location --request POST \
 ### request_id Expiration
 The `request_id` from `find_routes` references server-side cached results. It has a limited time-to-live — call `swap_v3` promptly after obtaining it. If expired, re-call `find_routes`.
 
-### by_amount_in Matching
-The `by_amount_in` value in `swap_v3` **must match** the value used in the corresponding `find_routes` call. Mismatched values will produce incorrect transactions.
-
-### by_amount_in=false Limitation
-When `by_amount_in` is set to `false`, only the CETUS provider is used. Multi-provider routing is not supported for fixed-output swaps.
+### Fixed-input Transactions Only
+The swap build service (`swap_v3`) only supports fixed-input transactions. Use a `request_id` from `find_routes` with `by_amount_in=true`. Fixed-output quotes (`by_amount_in=false`) cannot be used to build transactions, even if `by_amount_in=true` is passed to `swap_v3`; request a new fixed-input quote instead.
 
 ### Multi-hop Paths
 A single route can contain multiple hops (up to `depth` hops, max 3). Each element in `data.paths[]` represents one hop. The `target` of hop N matches the `from` of hop N+1.

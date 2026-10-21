@@ -10,6 +10,8 @@ description: >
 
 DEX aggregator on Sui. Find best-price routes across multiple providers, then build an unsigned transaction for on-chain execution.
 
+Transaction building supports fixed input only. Use `by_amount_in=true` in `find_routes`; fixed-output quotes (`by_amount_in=false`) cannot be used to build transactions.
+
 ## Endpoints
 
 | Method | Path | Auth |
@@ -24,7 +26,7 @@ DEX aggregator on Sui. Find best-price routes across multiple providers, then bu
 | from | string | Y | Source coin type (full address) |
 | target | string | Y | Target coin type (full address) |
 | amount | number | Y | Input amount (smallest unit) when `by_amount_in=true`, otherwise output amount |
-| by_amount_in | string | N | `true` = fix input amount (default, recommended). `false` = fix output, CETUS provider only |
+| by_amount_in | string | N | `true` = fixed input (default, required for transaction building). `false` = fixed output (quote only) |
 | split_count | number | N | Order splitting: 1 = no split, max 50, default 50 |
 | providers | string | N | Comma-separated provider filter (e.g. `CETUS,DEEPBOOKV3`). Default: all |
 | depth | number | N | Max hops 1-3, default 3 |
@@ -38,7 +40,7 @@ DEX aggregator on Sui. Find best-price routes across multiple providers, then bu
 | request_id | body | string | Y | From `find_routes` response `data.request_id` |
 | wallet | body | string | Y | User's Sui wallet address |
 | slippage | body | number | Y | Slippage tolerance as decimal ratio. **Must be ≤ 0.5 (50%).** Recommended: 0.005 (0.5%) for stablecoin pairs, 0.01 (1%) for volatile pairs. Values > 0.5 are dangerous and will cause significant asset loss. |
-| by_amount_in | body | string | N | Must match the value used in `find_routes`. Default: `true` |
+| by_amount_in | body | string | N | Only `true` is supported (default). The `request_id` must come from a fixed-input quote |
 | partner | body | string | N | Partner object ID for referral fee sharing |
 
 ## Common Coin Types
