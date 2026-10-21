@@ -8,7 +8,7 @@ description: >
 
 # Cetus Aggregator V3
 
-DEX aggregator on Sui. Find best-price routes across 28 providers, then build an unsigned transaction for on-chain execution.
+DEX aggregator on Sui. Find best-price routes across multiple providers, then build an unsigned transaction for on-chain execution.
 
 ## Endpoints
 
@@ -89,8 +89,10 @@ Amount formula: `amount = human_amount * 10^decimals` (e.g. 1 SUI = 1000000000, 
 | 5000 | Liquidity not enough — try smaller amount or different pair |
 | 5040 | Unsupported API version |
 
-## Supported Providers (28)
+## Provider Snapshot (37)
 
-CETUS, SCALLOP, AFTERMATH, FLOWXV3, AFSUI, VOLO, KRIYAV3, KRIYA, ALPHAFI, FLOWX, BLUEMOVE, DEEPBOOKV3, BLUEFIN, HAEDAL, TURBOS, SPRINGSUI, STEAMM, METASTABLE, HAWAL, OBRIC, STEAMM_OMM_V2, STEAMM_OMM, MOMENTUM, MAGMA, FERRADLMM, FERRACLMM, HAEDALPMM, HAEDALHMMV2
+From `@cetusprotocol/aggregator-sdk@1.7.5` (`getAllProviders`), checked 2026-10-21. This SDK list does not guarantee every provider is enabled by the REST service or available for a given pair; omit the filter to use server defaults.
+
+CETUS, KRIYA, DIPCOIN, FLOWX, FLOWXV3, KRIYAV3, TURBOS, AFTERMATH, HAEDAL, VOLO, AFSUI, BLUEMOVE, DEEPBOOKV3, SCALLOP, SUILEND, BLUEFIN, HAEDALPMM, ALPHAFI, SPRINGSUI, STEAMM, METASTABLE, OBRIC, HAWAL, MOMENTUM, STEAMM_OMM, STEAMM_OMM_V2, MAGMA, SEVENK, HAEDALHMMV2, FULLSAIL, CETUSDLMM, FERRADLMM, FERRACLMM, BOLT, MAGMAPROPAMM, HAEDALPROPAMM, CETUS_TIDE
 
 Payload shapes: [reference.md](reference.md).

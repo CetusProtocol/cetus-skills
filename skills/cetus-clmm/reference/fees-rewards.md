@@ -13,7 +13,7 @@ SDK and Move examples for collecting LP fees and rewarder payouts. Parameter tab
 Bundles LP fees and rewarder rewards in one transaction via the SDK rewarder helper. Set `collect_fee: true` to fold fee collection into the same payload.
 
 ```typescript
-const position = await sdk.Position.getPosition(positionAddress)
+const position = await sdk.Position.getPositionById(positionAddress)
 const pool = await sdk.Pool.getPool(position.pool)
 
 const rewarder_coin_types = pool.rewarder_infos.map((r) => r.coin_type)

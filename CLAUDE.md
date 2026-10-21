@@ -1,52 +1,28 @@
-# CLAUDE.md
+# Project guidance
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This repository contains agent skills for the Cetus Aggregator V3 REST API, CLMM SDK/Move interface, and DLMM SDK/Move interface on Sui.
 
-## Project Overview
+## Layout
 
-This repository (`CetusProtocol/cetus-skills`) contains Claude Code skills for interacting with the Cetus Protocol — a DEX aggregator on the Sui blockchain. The skills wrap the Cetus Aggregator V3 API to provide token swap routing and transaction building.
+- `README.md`: installation, version matrix, and quick starts.
+- `UPSTREAM.md`: dated upstream sources, migration notes, and verification limits.
+- `skills/cetus-aggregator/{SKILL.md,README.md,reference.md}`: REST endpoints, schemas, and examples.
+- `skills/cetus-clmm/{SKILL.md,README.md,reference/}`: CLMM operations and topic references, including flash loans.
+- `skills/cetus-dlmm/{SKILL.md,README.md,reference/}`: DLMM pools, strategies, positions, swaps, and collection.
+- `.claude/hooks/`: local command validation hooks.
 
-## Repository Structure
+## Documentation conventions
 
-```
-cetus-skills/
-├── CLAUDE.md                               # This file — project guidance
-├── README.md                               # Project overview & installation
-├── requirments.md                          # Raw API documentation (source material)
-├── .cursor/rules/                          # Cursor IDE rule files
-└── skills/
-    └── cetus-aggregator/
-        ├── SKILL.md                        # Concise skill definition
-        └── reference.md                    # Detailed payloads & examples
-```
+Keep each `SKILL.md` concise with YAML `name` and `description`, operation/parameter tables, and links to detailed references. Load topic files only as needed. Update the root README when adding skills. Keep shared version and address snapshots consistent across README and skill files.
 
-## Skill Format Conventions
+## Upstream verification
 
-Each skill is a folder under `skills/` containing two files:
-- **SKILL.md** — Concise, agent-optimized: YAML frontmatter with trigger terms, endpoint tables, param tables (Y/N for required), integration flow, error codes. Ends with link to reference.md.
-- **reference.md** — Detailed: full JSON response examples, field-by-field schema tables, curl examples, edge cases.
+Check npm dist-tags, published package types/source maps, official Cetus source repositories, and read-only API responses. Distinguish npm latest, SDK configuration snapshots, and live chain state. Do not label a version matrix tested unless the corresponding checks were actually run. See `UPSTREAM.md` for the current snapshot and validation scope.
 
-## Cetus Aggregator V3 API
+The current SDK generation uses Sui 2.x with gRPC/GraphQL. Import `clmmMainnet` and `dlmmMainnet` from their respective SDK packages, not common-sdk. Set the sender before building funded transactions. DLMM opening with liquidity uses `Position.addLiquidityPayload` with the complete liquidity result and bin range.
 
-Two core endpoints (see `skills/cetus-aggregator/SKILL.md` for full details):
+## Sui and transaction handling
 
-| Endpoint | Method | URL |
-|----------|--------|-----|
-| find_routes | GET | `https://api-sui.cetus.zone/router_v3/find_routes` |
-| swap_v3 | POST | `https://api-sui-mcp.cetus.zone/aggregator/swap_v3` |
+Coin types use `{package_id}::{module}::{struct}`. Amounts are integer smallest units; preserve precision with strings/BN. Original package IDs identify types; upgraded `published_at` addresses target Move calls. Prefer SDK configuration for call targets.
 
-**Flow:** find_routes → `request_id` → swap_v3 → unsigned tx bytes → sign & submit.
-
-## Sui-Specific Context
-
-- **Coin types** use full addresses: `{package_id}::{module}::{struct}` (e.g., `0x2::sui::SUI`)
-- **Amounts** are always in smallest denomination (SUI: 9 decimals, USDC: 6 decimals)
-- **Transaction bytes** from the API are unsigned — signing is client-side and SDK-dependent
-
-## Adding New Skills
-
-1. Create `skills/<skill-name>/` directory
-2. Add `SKILL.md` with YAML frontmatter (`name`, `description` with trigger terms)
-3. Add `reference.md` with full payload shapes and examples
-4. Update `README.md` skills table
-5. Follow conventions in `.cursor/rules/skills-token-optimization.mdc`
+Aggregator flow: `find_routes` → `request_id` → `swap_v3` → unsigned bytes → wallet signing and submission. Keep `by_amount_in` consistent and include `v=1999999` in REST route requests. Building and quoting do not authorize signing or submitting transactions.

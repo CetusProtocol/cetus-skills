@@ -21,25 +21,23 @@ const coin_type_b = '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e
 const bin_step = 2
 const active_id = BinUtils.getBinIdFromPrice('2.5', bin_step, true, 9, 6)
 
-const create_pool_payload = sdk.Pool.createPoolPayload(
-  { coin_type_a, coin_type_b, bin_step, active_id },
-  new Transaction(),
+const tx = new Transaction()
+const pool_result = sdk.Pool.createPoolPayload(
+  { coin_type_a, coin_type_b, bin_step, base_factor: 1000, active_id },
+  tx,
 )
 
-const txn = await sdk.FullClient.sendTransaction(signer, create_pool_payload)
+const txn = await sdk.FullClient.sendTransaction(signer, tx)
 ```
 
 **Move (`cetusdlmm::pool`)**:
 
 ```move
-pool::create_pool<SUI, USDC>(
-    config,
-    registry,
-    2,                    // bin_step
-    i32::from(23000),     // active_id
-    versioned,
-    ctx,
+let (receipt, new_pool) = registry::create_pool_v3<SUI, USDC>(
+    registry, 2, 1000, 23000, // bin_step, base_factor, active_id
+    string::utf8(b""), config, versioned, clock, ctx,
 );
+registry::destroy_receipt(receipt, new_pool, versioned);
 ```
 
 ## Pool lookup
@@ -50,4 +48,4 @@ const pool = await sdk.Pool.getPool(poolAddress)
 // pool.reward_manager.rewards (for collecting rewards)
 ```
 
-> **Version compatibility:** `dlmm-sdk@1.2.6` is sensitive to `common-sdk` API changes. If `getPool` or `preSwapQuote` throw on unrelated arg shapes, verify the pinned versions in [SKILL.md](../SKILL.md) are installed.
+> **Version compatibility:** use the version snapshot in [SKILL.md](../SKILL.md). The current SDK uses Sui 2.x and gRPC/GraphQL; old JSON-RPC client integrations need migration.

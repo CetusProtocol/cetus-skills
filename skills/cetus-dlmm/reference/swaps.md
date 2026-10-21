@@ -11,11 +11,9 @@ SDK and Move examples for single-pool swaps via the router. Parameter tables are
 ## swap_a2b (router)
 
 ```typescript
-import { Percentage, d } from '@cetusprotocol/common-sdk'
-
 const pool = await sdk.Pool.getPool(poolAddress)
 
-const slippage = Percentage.fromDecimal(d(0.01)) // 1%
+const slippage = 0.01 // 1%
 
 // 1) Quote
 const quote = await sdk.Swap.preSwapQuote({

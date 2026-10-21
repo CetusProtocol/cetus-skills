@@ -23,7 +23,7 @@ Default to `add_liquidity_fix_coin_*` — users think in coin amounts, not liqui
 import BN from 'bn.js'
 import { ClmmPoolUtil } from '@cetusprotocol/common-sdk'
 
-const position = await sdk.Position.getPosition(positionAddress)
+const position = await sdk.Position.getPositionById(positionAddress)
 const pool = await sdk.Pool.getPool(position.pool)
 
 const fix_coin_amount = new BN(500000000) // 0.5 SUI
@@ -37,7 +37,7 @@ const liquidity_input = ClmmPoolUtil.estLiquidityAndCoinAmountFromOneAmounts(
   fix_amount_a,
   true,
   slippage,
-  pool.current_sqrt_price,
+  new BN(pool.current_sqrt_price),
 )
 
 const amount_a = fix_amount_a ? fix_coin_amount.toNumber() : Number(liquidity_input.coin_amount_limit_a)
@@ -77,6 +77,7 @@ pool_script::add_liquidity_fix_coin_with_all<SUI, USDC>(
 ## remove_liquidity
 
 ```typescript
+import { Transaction } from '@mysten/sui/transactions'
 import BN from 'bn.js'
 import { ClmmPoolUtil, TickMath, Percentage, adjustForCoinSlippage } from '@cetusprotocol/common-sdk'
 
@@ -99,7 +100,8 @@ const { coin_amount_limit_a, coin_amount_limit_b } = adjustForCoinSlippage(coin_
 
 const rewarder_coin_types = pool.rewarder_infos.map((r) => r.coin_type)
 
-const remove_liquidity_payload = await sdk.Position.removeLiquidityPayload({
+const remove_liquidity_payload = new Transaction()
+await sdk.Position.removeLiquidityPayload({
   pool_id: pool.id,
   pos_id,
   coin_type_a: pool.coin_type_a,
@@ -109,7 +111,7 @@ const remove_liquidity_payload = await sdk.Position.removeLiquidityPayload({
   min_amount_b: coin_amount_limit_b.toString(),
   rewarder_coin_types,
   collect_fee: true,
-})
+}, remove_liquidity_payload)
 
 const txn = await sdk.FullClient.sendTransaction(signer, remove_liquidity_payload)
 ```

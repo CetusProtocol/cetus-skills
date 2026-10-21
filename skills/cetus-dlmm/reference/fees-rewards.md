@@ -28,10 +28,10 @@ const txn = await sdk.FullClient.sendTransaction(signer, collect_fee_payload)
 
 ```move
 let (coin_a, coin_b) = pool::collect_position_fee<SUI, USDC>(
-    config, pool, position, versioned, ctx,
+    pool, position, config, versioned, ctx,
 );
-transfer::public_transfer(coin_a, ctx.sender());
-transfer::public_transfer(coin_b, ctx.sender());
+transfer::public_transfer(coin::from_balance(coin_a, ctx), ctx.sender());
+transfer::public_transfer(coin::from_balance(coin_b, ctx), ctx.sender());
 ```
 
 ## collect_position_reward
@@ -40,12 +40,12 @@ transfer::public_transfer(coin_b, ctx.sender());
 
 ```move
 let reward_coin = pool::collect_position_reward<SUI, USDC, CETUS>(
-    config, pool, position, versioned, ctx,
+    pool, position, config, versioned, ctx,
 );
-transfer::public_transfer(reward_coin, ctx.sender());
+transfer::public_transfer(coin::from_balance(reward_coin, ctx), ctx.sender());
 ```
 
-Call `pool::update_position_fee_and_rewards(pool, position, config, versioned, clock)` first if you want freshly-accrued fees and rewards to settle on the position before collection.
+Call `pool::update_position_fee_and_rewards(pool, position_id, versioned, clock)` first if you want freshly-accrued fees and rewards to settle on the position before collection.
 
 ## Bundling fee + rewards in one call
 

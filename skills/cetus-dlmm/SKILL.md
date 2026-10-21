@@ -15,10 +15,14 @@ Dynamic Liquidity Market Maker (DLMM) on Sui. Create pools with dynamic fees, ma
 ## SDK Installation
 
 ```bash
-npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
+npm install @mysten/sui@2.31.2 blakejs @cetusprotocol/common-sdk@1.4.3 @cetusprotocol/dlmm-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.9
 ```
 
-Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/dlmm-sdk@1.2.6`, `@cetusprotocol/sui-clmm-sdk@1.4.1`.
+Version snapshot checked against npm on 2026-10-21: `@cetusprotocol/common-sdk@1.4.3`, `@cetusprotocol/dlmm-sdk@1.3.3`, `@cetusprotocol/sui-clmm-sdk@1.4.9`.
+
+Use Sui SDK 2.x (gRPC/GraphQL). Import `dlmmMainnet` from `@cetusprotocol/dlmm-sdk`. Set `sdk.setSenderAddress(walletAddress)` before building coin-funded transactions.
+
+For SDK position opening, use `Position.addLiquidityPayload` with `lower_bin_id` and `upper_bin_id` (no `position_id`). Pass the complete `BinLiquidityInfo`, `active_id`, `bin_step`, and `max_price_slippage`; see [positions](reference/positions.md).
 
 ## Core Concepts
 
@@ -37,7 +41,7 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 
 | Function | Module | Description |
 |----------|--------|-------------|
-| create_pool | cetusdlmm::pool | Create new DLMM pool with bin step and initial active bin |
+| create_pool_v3 | cetusdlmm::registry | Create new DLMM pool with bin step and initial active bin |
 | fetch_bins | cetusdlmm::pool | Query bin information with pagination |
 | get_total_fee_rate | cetusdlmm::pool | Get current total fee rate (base + variable) |
 
@@ -91,8 +95,8 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 ```
 1. Determine bin_step (price interval between bins)
 2. Calculate active_id (initial bin representing starting price)
-3. Call create_pool<CoinA, CoinB>(config, registry, bin_step, active_id, versioned, ctx)
-4. Pool is created and ready for liquidity
+3. Use sdk.Pool.createPoolPayload({ coin_type_a, coin_type_b, bin_step, base_factor, active_id }, tx)
+4. Submit the containing tx; the helper finalizes the creation receipt and shares the pool
 ```
 
 ### Opening Position with Liquidity
@@ -104,7 +108,7 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 4. Router approach (recommended):
    dlmmrouter::add_liquidity::open_position(pool, coin_a, coin_b, bins, amounts_a, amounts_b, config, versioned, clock, ctx)
 5. Direct approach (advanced):
-   a. pool::open_position() to get position and certificate
+   a. pool::open_position(...) to get position and certificate
    b. pool::repay_open_position() to finalize
 ```
 
@@ -125,11 +129,11 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 
 ```
 1. Update position fee/reward tracking:
-   pool::update_position_fee_and_rewards(pool, position, config, versioned, clock)
+   pool::update_position_fee_and_rewards(pool, position_id, versioned, clock)
 2. Collect fees:
-   pool::collect_position_fee(pool, position, config, versioned, ctx)
+   pool::collect_position_fee(pool, position, config, versioned, ctx) → balances
 3. Collect rewards (for each reward type):
-   pool::collect_position_reward<CoinA, CoinB, RewardType>(pool, position, config, versioned, ctx)
+   pool::collect_position_reward<CoinA, CoinB, RewardType>(pool, position, config, versioned, ctx) → balance
 ```
 
 ## Router vs Direct Call
@@ -162,11 +166,14 @@ Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/d
 
 ## Contract Addresses (Mainnet)
 
+Snapshot from the SDK mainnet configuration on 2026-10-21. `Package` is the original type identity; `Published At` is the upgrade used for Move calls. Prefer the SDK configuration over hardcoded call targets.
+
 | Object | Address |
 |--------|---------|
 | DLMM Package | `0x5664f9d3fd82c84023870cfbda8ea84e14c8dd56ce557ad2116e0668581a682b` |
-| DLMM Published At | `0x0489a4b326c17428d9ae6f10023468109b097f10e705af30ccc27bbb18ead065` |
-| Router Package | `0x36d7c12e8497cee9259dd6b0da9f8bbe955134d658a1e3e7c682d43c7a955125` |
+| DLMM Published At | `0x6b989f9b05bd11a00f1c7779443d66802c5e71631f59e87be5d2a616991f151e` |
+| Router Package | `0x8d389fa25cb08ebc5e520bc520ed394eed9e62b56b7868acb398bf298b8a76f3` |
+| Router Published At | `0x8937cf16447e9fd8f0db24f1e05364be0422585e0954b86afb18693510b6ca5b` |
 | GlobalConfig | `0xf31b605d117f959b9730e8c07b08b856cb05143c5e81d5751c90d2979e82f599` |
 | Registry | `0xb1d55e7d895823c65f98d99b81a69436cf7d1638629c9ccb921326039cda1f1b` |
 | Versioned | `0x05370b2d656612dd5759cbe80463de301e3b94a921dfc72dd9daa2ecdeb2d0a8` |

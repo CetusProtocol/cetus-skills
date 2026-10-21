@@ -84,7 +84,9 @@ between the two `moveCall`s as a transaction result and is never owned off-chain
 ```typescript
 import { Transaction } from '@mysten/sui/transactions'
 
-const CLMM_PACKAGE = '0x1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb'
+import { clmmMainnet } from '@cetusprotocol/sui-clmm-sdk'
+
+const CLMM_PACKAGE = clmmMainnet.clmm_pool.published_at
 const GLOBAL_CONFIG = '0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f'
 
 const coinTypeA = '0x2::sui::SUI'

@@ -71,7 +71,8 @@ Query the current rate:
 ```typescript
 const fee_rate = await sdk.Pool.getTotalFeeRate({
   pool_id: pool.id,
-  bin_step: pool.bin_step,
+  coin_type_a: pool.coin_type_a,
+  coin_type_b: pool.coin_type_b,
 })
 // fee_rate.base_fee_rate, fee_rate.var_fee_rate, fee_rate.total_fee_rate
 ```

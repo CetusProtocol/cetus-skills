@@ -17,10 +17,12 @@ This skill enables you to:
 ### Installation
 
 ```bash
-npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.1
+npm install @mysten/sui@2.31.2 blakejs @cetusprotocol/common-sdk@1.4.3 @cetusprotocol/sui-clmm-sdk@1.4.9
 ```
 
-Tested version pair: `@cetusprotocol/common-sdk@1.3.3` + `@cetusprotocol/sui-clmm-sdk@1.4.1`.
+Version snapshot checked against npm on 2026-10-21: `@cetusprotocol/common-sdk@1.4.3` + `@cetusprotocol/sui-clmm-sdk@1.4.9`.
+
+The TypeScript SDK uses Sui 2.x gRPC/GraphQL. Import `clmmMainnet` from `@cetusprotocol/sui-clmm-sdk` and set the sender before building funded transactions.
 
 ### Basic Usage
 
@@ -32,7 +34,7 @@ pool_script::create_pool<SUI, USDC>(
     config,
     pools,
     10,                        // tick_spacing
-    29189415097064819712,      // initialize_sqrt_price
+    922337203685477580,      // initialize_sqrt_price
     string::utf8(b"https://example.com/position"),
     clock,
     ctx
@@ -102,10 +104,14 @@ Each liquidity position is represented as an NFT containing:
 
 ## Contract Addresses (Mainnet)
 
+Snapshot from the SDK mainnet configuration on 2026-10-21. `Package` is the original type identity; `Published At` is the upgrade used for Move calls. Prefer the SDK configuration over hardcoded call targets.
+
 | Object | Address |
 |--------|---------|
 | CLMM Package | `0x1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb` |
+| CLMM Published At | `0x260693ec785a6e6c9d81d58c7d2ff72f1288ae0fa6a9725abe05a6478b11f084` |
 | Integrate Package | `0x996c4d9480708fb8b92aa7acf819fb0497b5ec8e65ba06601cae2fb6db3312c3` |
+| Integrate Published At | `0x9ee0534b703b14457aee7698ea3a07a5080f954ed2b7e9910fbb7a55506824fa` |
 | GlobalConfig | `0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f` |
 | Pools | `0xf699e7f2276f5c9a75944b37a0c5b5d9ddfd2471bf6242483b03ab2887d198d0` |
 | Partners | `0xac30897fa61ab442f6bff518c5923faa1123c94b36bd4558910e9c783adfa204` |

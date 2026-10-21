@@ -6,7 +6,7 @@ Claude Code skills for interacting with the [Cetus Protocol](https://www.cetus.z
 
 Cetus Protocol provides three main DeFi primitives on Sui:
 
-- **Aggregator** - Smart order routing across 28 DEX providers for best swap prices
+- **Aggregator** - Smart order routing across multiple DEX providers for best swap prices
 - **CLMM** (Concentrated Liquidity Market Maker) - Capital-efficient liquidity provision with continuous tick ranges
 - **DLMM** (Dynamic Liquidity Market Maker) - Discrete bin-based liquidity with dynamic fees
 
@@ -16,7 +16,7 @@ This repository contains Claude Code skills for all three protocols, enabling AI
 
 | Skill | Type | Description | Documentation |
 |-------|------|-------------|---------------|
-| **[cetus-aggregator](skills/cetus-aggregator/)** | API | Find optimal swap routes across 28 DEX providers and build swap transactions | [README](skills/cetus-aggregator/README.md) · [SKILL.md](skills/cetus-aggregator/SKILL.md) |
+| **[cetus-aggregator](skills/cetus-aggregator/)** | API | Find optimal swap routes across multiple DEX providers and build swap transactions | [README](skills/cetus-aggregator/README.md) · [SKILL.md](skills/cetus-aggregator/SKILL.md) |
 | **[cetus-clmm](skills/cetus-clmm/)** | SDK | Create pools, manage positions, add/remove liquidity, swap tokens, flash loans on CLMM | [README](skills/cetus-clmm/README.md) · [SKILL.md](skills/cetus-clmm/SKILL.md) |
 | **[cetus-dlmm](skills/cetus-dlmm/)** | SDK | Create pools, manage positions with strategies (Spot/Curve/BidAsk), swap on DLMM | [README](skills/cetus-dlmm/README.md) · [SKILL.md](skills/cetus-dlmm/SKILL.md) |
 
@@ -29,14 +29,14 @@ This repository contains Claude Code skills for all three protocols, enabling AI
 | **Fee Structure** | Provider-dependent | Fixed per pool | Base + Variable (dynamic) |
 | **Integration** | REST API | TypeScript SDK + Move | TypeScript SDK + Move |
 | **Best For** | Traders seeking best rates | Stable pairs, passive LPs | Volatile pairs, market making |
-| **Providers** | 28 DEX protocols | Cetus CLMM only | Cetus DLMM only |
+| **Providers** | Multiple DEX protocols | Cetus CLMM only | Cetus DLMM only |
 
 ## Installation
 
 ### From GitHub
 
 ```bash
-claude install-skill https://github.com/CetusProtocol/cetus-skills
+npx skills add CetusProtocol/cetus-skills
 ```
 
 ### Local Development
@@ -52,11 +52,11 @@ cd cetus-skills
 For CLMM and DLMM skills, install the respective SDKs:
 
 ```bash
-# Tested compatible versions
-npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
+# Version snapshot: 2026-10-21
+npm install @mysten/sui@2.31.2 blakejs @cetusprotocol/common-sdk@1.4.3 @cetusprotocol/dlmm-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.9
 ```
 
-This repository is currently written against the version matrix above. In particular, `@cetusprotocol/dlmm-sdk@1.2.6` should be paired with `@cetusprotocol/common-sdk@1.3.3` and `@cetusprotocol/sui-clmm-sdk@1.4.1` to avoid DLMM pool fetch and quote incompatibilities reported with other combinations.
+These are the npm `latest` versions checked on 2026-10-21. The SDKs require `@mysten/sui >=2.28.0`; the examples use 2.31.2. CLMM/DLMM require `blakejs` as a peer dependency. Mainnet configurations are exported by their respective SDK packages. Sui 2.x integrations use gRPC and GraphQL. See [upstream verification](UPSTREAM.md) for sources and validation scope.
 
 ## Environment Variables
 
@@ -78,18 +78,18 @@ cetus-skills/
 │   ├── cetus-clmm/
 │   │   ├── README.md            # User-friendly guide
 │   │   ├── SKILL.md             # Agent-optimized reference
-│   │   └── reference.md         # Detailed SDK & Move examples
+│   │   └── reference/           # Topic-specific SDK & Move examples
 │   └── cetus-dlmm/
 │       ├── README.md            # User-friendly guide
 │       ├── SKILL.md             # Agent-optimized reference
-│       └── reference.md         # Detailed SDK & Move examples
-└── .cursor/rules/               # Cursor IDE rules
+│       └── reference/           # Topic-specific SDK & Move examples
+└── UPSTREAM.md                  # Version snapshot, sources & verification
 ```
 
 Each skill contains:
 - **README.md** - User-friendly documentation with examples and quick start
 - **SKILL.md** - Concise, agent-optimized reference (YAML frontmatter, tables, flows)
-- **reference.md** - Detailed schemas, payloads, and edge cases
+- **reference.md** (Aggregator) or **reference/** (CLMM/DLMM) - Detailed schemas, payloads, and edge cases
 
 ## Getting Started
 
@@ -110,19 +110,20 @@ See [cetus-aggregator README](skills/cetus-aggregator/README.md) for full integr
 ### For Liquidity Providers (CLMM)
 
 ```typescript
-import { CetusClmmSDK } from '@cetusprotocol/sui-clmm-sdk'
-import { clmmMainnet } from '@cetusprotocol/common-sdk'
+import { CetusClmmSDK, clmmMainnet } from '@cetusprotocol/sui-clmm-sdk'
+import { TickMath } from '@cetusprotocol/common-sdk'
 
 const sdk = CetusClmmSDK.createSDK(clmmMainnet)
-
-// Open position with liquidity
-const payload = await sdk.Position.openPositionWithLiquidityPayload({
-  pool_id: '0x...',
-  tick_lower: 100,
-  tick_upper: 200,
-  amount_a: '1000000000',  // 1 SUI
-  fix_amount_a: true,
-})
+const pool = await sdk.Pool.getPool('0x...') // replace with a CLMM pool ID
+const tick = Number(pool.current_tick_index)
+const spacing = Number(pool.tick_spacing)
+const payload = sdk.Position.openPositionPayload({
+  pool_id: pool.id,
+  coin_type_a: pool.coin_type_a,
+  coin_type_b: pool.coin_type_b,
+  tick_lower: TickMath.getPrevInitializeTickIndex(tick, spacing).toString(),
+  tick_upper: TickMath.getNextInitializeTickIndex(tick, spacing).toString(),
+}) // unsigned transaction opening an empty position
 ```
 
 See [cetus-clmm README](skills/cetus-clmm/README.md) for full examples.
@@ -130,15 +131,39 @@ See [cetus-clmm README](skills/cetus-clmm/README.md) for full examples.
 ### For Market Makers (DLMM)
 
 ```typescript
-import { CetusDlmmSDK, StrategyType } from '@cetusprotocol/dlmm-sdk'
-import { dlmmMainnet } from '@cetusprotocol/common-sdk'
+import { CetusDlmmSDK, StrategyType, dlmmMainnet } from '@cetusprotocol/dlmm-sdk'
 
 const sdk = CetusDlmmSDK.createSDK(dlmmMainnet)
+sdk.setSenderAddress('0x...') // replace with wallet address
 
-// Open position with Spot strategy
-const payload = await sdk.Position.openPositionPayload({
-  pool_id: '0x...',
-  bin_infos: [...],
+
+// Fetch pool
+const poolAddress = '0x...' // DLMM pool object id
+const pool = await sdk.Pool.getPool(poolAddress)
+
+// Calculate liquidity distribution
+const bin_infos = await sdk.Position.calculateAddLiquidityInfo({
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  lower_bin_id: pool.active_id - 10,
+  upper_bin_id: pool.active_id + 10,
+  pool_id: pool.id, // fetch real active-bin balances
+  strategy_type: StrategyType.Spot,
+  coin_amount: '1000000000',  // 1 SUI
+  fix_amount_a: true,
+})
+
+// Open position
+const tx = await sdk.Position.addLiquidityPayload({
+  pool_id: pool.id,
+  coin_type_a: pool.coin_type_a,
+  coin_type_b: pool.coin_type_b,
+  lower_bin_id: pool.active_id - 10,
+  upper_bin_id: pool.active_id + 10,
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  max_price_slippage: 0.01,
+  bin_infos,
   strategy_type: StrategyType.Spot,
 })
 ```
@@ -153,7 +178,7 @@ See [cetus-dlmm README](skills/cetus-dlmm/README.md) for full examples.
 - [Sui Documentation](https://docs.sui.io/)
 
 ### API & SDKs
-- [Aggregator API](https://cetus-1.gitbook.io/cetus-developer-docs/developer/via-aggregator)
+- [Aggregator API](https://cetus-1.gitbook.io/cetus-developer-docs/developer/cetus-aggregator)
 - [CLMM SDK](https://www.npmjs.com/package/@cetusprotocol/sui-clmm-sdk)
 - [DLMM SDK](https://www.npmjs.com/package/@cetusprotocol/dlmm-sdk)
 

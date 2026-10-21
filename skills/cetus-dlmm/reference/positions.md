@@ -26,18 +26,22 @@ const bin_infos = await sdk.Position.calculateAddLiquidityInfo({
   bin_step: pool.bin_step,
   lower_bin_id,
   upper_bin_id,
-  amount_a_in_active_bin: '0',
-  amount_b_in_active_bin: '0',
+  pool_id: pool.id, // fetch real active-bin balances
   strategy_type: StrategyType.Spot,
   coin_amount: '1000000000', // 1 SUI
   fix_amount_a: true,
 })
 
-const open_position_payload = await sdk.Position.openPositionPayload({
+const open_position_payload = await sdk.Position.addLiquidityPayload({
   pool_id: pool.id,
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,
-  bin_infos: bin_infos.bins,
+  lower_bin_id: pool.active_id - 10,
+  upper_bin_id: pool.active_id + 10,
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  max_price_slippage: 0.01,
+  bin_infos,
   strategy_type: StrategyType.Spot,
 })
 
@@ -66,9 +70,9 @@ const bin_infos_curve = await sdk.Position.calculateAddLiquidityInfo({
   strategy_type: StrategyType.Curve,
 })
 
-await sdk.Position.openPositionPayload({
+await sdk.Position.addLiquidityPayload({
   /* ...same as Spot... */
-  bin_infos: bin_infos_curve.bins,
+  bin_infos: bin_infos_curve,
   strategy_type: StrategyType.Curve,
 })
 ```
@@ -83,9 +87,9 @@ const bin_infos_bidask = await sdk.Position.calculateAddLiquidityInfo({
   strategy_type: StrategyType.BidAsk,
 })
 
-await sdk.Position.openPositionPayload({
+await sdk.Position.addLiquidityPayload({
   /* ...same as Spot... */
-  bin_infos: bin_infos_bidask.bins,
+  bin_infos: bin_infos_bidask,
   strategy_type: StrategyType.BidAsk,
 })
 ```
@@ -98,6 +102,7 @@ Closes the position, removes all liquidity, and collects fees. Requires destroyi
 const close_payload = await sdk.Position.closePositionPayload({
   pool_id: pool.id,
   position_id: positionAddress,
+  reward_coins: pool.reward_manager.rewards.map((r) => r.reward_coin),
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,
 })
@@ -108,11 +113,18 @@ const txn = await sdk.FullClient.sendTransaction(signer, close_payload)
 **Move (`cetusdlmm::pool`)**:
 
 ```move
-let close_cert = pool::close_position<SUI, USDC>(
-    config, pool, position,
+let (mut close_cert, balance_a, balance_b) = pool::close_position<SUI, USDC>(
+    pool, position, config,
     versioned, clock, ctx,
 );
+// Repeat for every reward coin configured on this pool:
+let reward = pool::take_reward_from_close_position_cert<SUI, USDC, CETUS>(
+    pool, &mut close_cert, versioned,
+);
+transfer::public_transfer(coin::from_balance(reward, ctx), ctx.sender());
 pool::destroy_close_position_cert(close_cert, versioned);
+transfer::public_transfer(coin::from_balance(balance_a, ctx), ctx.sender());
+transfer::public_transfer(coin::from_balance(balance_b, ctx), ctx.sender());
 ```
 
 ## Position structure

@@ -5,7 +5,7 @@ Claude Code skill for interacting with Cetus Protocol's DEX Aggregator V3 on Sui
 ## Overview
 
 This skill enables you to:
-- Find optimal swap routes across 28 DEX providers on Sui
+- Find optimal swap routes across multiple DEX providers on Sui
 - Get real-time price quotes for token pairs
 - Build unsigned swap transactions with slippage protection
 - Compare prices and liquidity across multiple protocols
@@ -53,14 +53,16 @@ curl -X POST "https://api-sui-mcp.cetus.zone/aggregator/swap_v3" \
 
 ### DEX Aggregation
 
-The Cetus Aggregator scans 28 DEX providers on Sui to find the best swap price:
+The Cetus Aggregator scans multiple DEX providers on Sui to find the best swap price:
 - Automatically splits orders across multiple pools for better rates
 - Supports multi-hop routing (up to 3 hops)
 - Compares liquidity depth across all providers
 
-### Supported Providers (28)
+### Provider Snapshot (37)
 
-CETUS, SCALLOP, AFTERMATH, FLOWXV3, AFSUI, VOLO, KRIYAV3, KRIYA, ALPHAFI, FLOWX, BLUEMOVE, DEEPBOOKV3, BLUEFIN, HAEDAL, TURBOS, SPRINGSUI, STEAMM, METASTABLE, HAWAL, OBRIC, STEAMM_OMM_V2, STEAMM_OMM, MOMENTUM, MAGMA, FERRADLMM, FERRACLMM, HAEDALPMM, HAEDALHMMV2
+From `@cetusprotocol/aggregator-sdk@1.7.5` (`getAllProviders`), checked 2026-10-21. This SDK list does not guarantee every provider is enabled by the REST service or available for a given pair; omit the filter to use server defaults.
+
+CETUS, KRIYA, DIPCOIN, FLOWX, FLOWXV3, KRIYAV3, TURBOS, AFTERMATH, HAEDAL, VOLO, AFSUI, BLUEMOVE, DEEPBOOKV3, SCALLOP, SUILEND, BLUEFIN, HAEDALPMM, ALPHAFI, SPRINGSUI, STEAMM, METASTABLE, OBRIC, HAWAL, MOMENTUM, STEAMM_OMM, STEAMM_OMM_V2, MAGMA, SEVENK, HAEDALHMMV2, FULLSAIL, CETUSDLMM, FERRADLMM, FERRACLMM, BOLT, MAGMAPROPAMM, HAEDALPROPAMM, CETUS_TIDE
 
 ### Slippage Protection
 
@@ -148,7 +150,7 @@ Slippage controls how much price movement you accept during the swap:
 | Feature | Aggregator | CLMM/DLMM |
 |---------|------------|-----------|
 | **Purpose** | Best-price token swaps | Liquidity provision & swaps |
-| **Providers** | 28 DEX protocols | Single protocol (Cetus) |
+| **Providers** | Multiple DEX protocols | Single protocol (Cetus) |
 | **Routing** | Multi-hop, order splitting | Direct pool access |
 | **Best For** | Traders seeking best rates | LPs earning fees |
 | **Integration** | REST API | SDK + Move contracts |

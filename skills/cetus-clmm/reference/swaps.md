@@ -40,7 +40,7 @@ const toAmount = by_amount_in ? res.estimated_amount_out : res.estimated_amount_
 const amountLimit = adjustForSlippage(toAmount, slippage, !by_amount_in)
 
 // 3) Build and execute
-const swap_payload = sdk.Swap.createSwapPayload({
+const swap_payload = await sdk.Swap.createSwapPayload({
   pool_id: pool.id,
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,

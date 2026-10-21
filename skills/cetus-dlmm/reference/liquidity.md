@@ -23,8 +23,7 @@ const bin_infos = await sdk.Position.calculateAddLiquidityInfo({
   bin_step: pool.bin_step,
   lower_bin_id: position.lower_bin_id,
   upper_bin_id: position.upper_bin_id,
-  amount_a_in_active_bin: '0',
-  amount_b_in_active_bin: '0',
+  pool_id: pool.id, // fetch real active-bin balances
   strategy_type: StrategyType.Spot,
   coin_amount: '500000000', // 0.5 SUI
   fix_amount_a: true,
@@ -35,7 +34,12 @@ const add_liquidity_payload = await sdk.Position.addLiquidityPayload({
   position_id: positionAddress,
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,
-  bin_infos: bin_infos.bins,
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  max_price_slippage: 0.01,
+  collect_fee: true,
+  reward_coins: pool.reward_manager.rewards.map((r) => r.reward_coin),
+  bin_infos,
   strategy_type: StrategyType.Spot,
 })
 
@@ -67,8 +71,13 @@ const remove_payload = await sdk.Position.removeLiquidityPayload({
   position_id: positionAddress,
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,
-  bin_ids: [23000, 23001, 23002],
-  liquidity_shares: ['50000000', '50000000', '50000000'],
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  bin_infos: await sdk.Position.getPositionAmounts(position, pool),
+  remove_percent: 0.5, // SDK fraction: remove 50%
+  slippage: 0.01,
+  collect_fee: true,
+  reward_coins: pool.reward_manager.rewards.map((r) => r.reward_coin),
 })
 
 const txn = await sdk.FullClient.sendTransaction(signer, remove_payload)
@@ -78,26 +87,27 @@ const txn = await sdk.FullClient.sendTransaction(signer, remove_payload)
 
 ```move
 let (coin_a, coin_b) = pool::remove_liquidity<SUI, USDC>(
-    config, pool, position,
-    vector[i32::from(23000), i32::from(23001), i32::from(23002)],
+    pool, position,
+    vector[23000, 23001, 23002],
     vector[50000000, 50000000, 50000000],
-    versioned, clock, ctx,
+    config, versioned, clock, ctx,
 );
-transfer::public_transfer(coin_a, ctx.sender());
-transfer::public_transfer(coin_b, ctx.sender());
+transfer::public_transfer(coin::from_balance(coin_a, ctx), ctx.sender());
+transfer::public_transfer(coin::from_balance(coin_b, ctx), ctx.sender());
 ```
 
 ## remove_liquidity_by_percent
 
-Removes a percentage from each listed bin. `percent` is basis points × 100 — `10000 = 100%`, `5000 = 50%`.
+Removes a percentage from each listed bin. `percent` is in basis points — `10000 = 100%`, `5000 = 50%`.
 
 **Move (`cetusdlmm::pool`)**:
 
 ```move
 let (coin_a, coin_b) = pool::remove_liquidity_by_percent<SUI, USDC>(
-    config, pool, position,
-    vector[i32::from(23000), i32::from(23001), i32::from(23002)],
+    pool, position, 23000, 23002,             // inclusive bin range
     5000,                                    // 50%
-    versioned, clock, ctx,
+    config, versioned, clock, ctx,
 );
+transfer::public_transfer(coin::from_balance(coin_a, ctx), ctx.sender());
+transfer::public_transfer(coin::from_balance(coin_b, ctx), ctx.sender());
 ```

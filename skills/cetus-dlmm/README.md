@@ -17,22 +17,23 @@ This skill enables you to:
 ### Installation
 
 ```bash
-npm install @cetusprotocol/common-sdk@1.3.3 @cetusprotocol/dlmm-sdk@1.2.6 @cetusprotocol/sui-clmm-sdk@1.4.1
+npm install @mysten/sui@2.31.2 blakejs @cetusprotocol/common-sdk@1.4.3 @cetusprotocol/dlmm-sdk@1.3.3 @cetusprotocol/sui-clmm-sdk@1.4.9
 ```
 
-Tested compatible versions: `@cetusprotocol/common-sdk@1.3.3`, `@cetusprotocol/dlmm-sdk@1.2.6`, `@cetusprotocol/sui-clmm-sdk@1.4.1`.
+Version snapshot checked against npm on 2026-10-21: `@cetusprotocol/common-sdk@1.4.3`, `@cetusprotocol/dlmm-sdk@1.3.3`, `@cetusprotocol/sui-clmm-sdk@1.4.9`.
 
-Known compatibility note: with other version combinations, `sdk.Pool.getPool(...)` and `sdk.Swap.preSwapQuote(...)` may fail because `dlmm-sdk@1.2.6` is sensitive to `common-sdk` API changes. Use the pinned versions above when CLMM and DLMM are installed in the same workspace.
+Migration note: this snapshot uses Sui SDK 2.x (gRPC + GraphQL). Import `dlmmMainnet` from `@cetusprotocol/dlmm-sdk`. Opening with liquidity uses `addLiquidityPayload`; pass the complete `BinLiquidityInfo`, range, active bin, bin step, and price slippage. See [positions](reference/positions.md).
 
 ### Basic Usage
 
 **Create a pool:**
 ```typescript
 import { CetusDlmmSDK, BinUtils } from '@cetusprotocol/dlmm-sdk'
-import { dlmmMainnet } from '@cetusprotocol/common-sdk'
+import { dlmmMainnet } from '@cetusprotocol/dlmm-sdk'
 import { Transaction } from '@mysten/sui/transactions'
 
 const sdk = CetusDlmmSDK.createSDK(dlmmMainnet)
+sdk.setSenderAddress(walletAddress) // wallet used for funded transaction building
 
 const bin_step = 2
 const active_id = BinUtils.getBinIdFromPrice('2.5', bin_step, true, 9, 6)
@@ -41,8 +42,9 @@ const active_id = BinUtils.getBinIdFromPrice('2.5', bin_step, true, 9, 6)
 const tx = new Transaction()
 const create_pool_payload = sdk.Pool.createPoolPayload({
   coin_type_a: '0x2::sui::SUI',
-  coin_type_b: '0xdba...::usdc::USDC',
+  coin_type_b: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
   bin_step,
+  base_factor: 1000, // example; choose a supported fee configuration
   active_id,
 }, tx)
 ```
@@ -61,19 +63,23 @@ const bin_infos = await sdk.Position.calculateAddLiquidityInfo({
   bin_step: pool.bin_step,
   lower_bin_id: pool.active_id - 10,
   upper_bin_id: pool.active_id + 10,
-  amount_a_in_active_bin: '0',
-  amount_b_in_active_bin: '0',
+  pool_id: pool.id, // fetch real active-bin balances
   strategy_type: StrategyType.Spot,
   coin_amount: '1000000000',  // 1 SUI
   fix_amount_a: true,
 })
 
 // Open position
-const tx = await sdk.Position.openPositionPayload({
+const tx = await sdk.Position.addLiquidityPayload({
   pool_id: pool.id,
   coin_type_a: pool.coin_type_a,
   coin_type_b: pool.coin_type_b,
-  bin_infos: bin_infos.bins,
+  lower_bin_id: pool.active_id - 10,
+  upper_bin_id: pool.active_id + 10,
+  active_id: pool.active_id,
+  bin_step: pool.bin_step,
+  max_price_slippage: 0.01,
+  bin_infos,
   strategy_type: StrategyType.Spot,
 })
 ```
@@ -154,11 +160,14 @@ Each liquidity position is represented as an NFT containing:
 
 ## Contract Addresses (Mainnet)
 
+Snapshot from the SDK mainnet configuration on 2026-10-21. `Package` is the original type identity; `Published At` is the upgrade used for Move calls. Prefer the SDK configuration over hardcoded call targets.
+
 | Object | Address |
 |--------|---------|
 | DLMM Package | `0x5664f9d3fd82c84023870cfbda8ea84e14c8dd56ce557ad2116e0668581a682b` |
-| DLMM Published At | `0x0489a4b326c17428d9ae6f10023468109b097f10e705af30ccc27bbb18ead065` |
-| Router Package | `0x36d7c12e8497cee9259dd6b0da9f8bbe955134d658a1e3e7c682d43c7a955125` |
+| DLMM Published At | `0x6b989f9b05bd11a00f1c7779443d66802c5e71631f59e87be5d2a616991f151e` |
+| Router Package | `0x8d389fa25cb08ebc5e520bc520ed394eed9e62b56b7868acb398bf298b8a76f3` |
+| Router Published At | `0x8937cf16447e9fd8f0db24f1e05364be0422585e0954b86afb18693510b6ca5b` |
 | GlobalConfig | `0xf31b605d117f959b9730e8c07b08b856cb05143c5e81d5751c90d2979e82f599` |
 | Registry | `0xb1d55e7d895823c65f98d99b81a69436cf7d1638629c9ccb921326039cda1f1b` |
 | Versioned | `0x05370b2d656612dd5759cbe80463de301e3b94a921dfc72dd9daa2ecdeb2d0a8` |

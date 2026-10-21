@@ -25,8 +25,8 @@ const initialize_sqrt_price = TickMath.priceToSqrtPriceX64(d(2.5), 9, 6).toStrin
 const tick_spacing = 10
 const current_tick_index = TickMath.sqrtPriceX64ToTickIndex(new BN(initialize_sqrt_price))
 
-const tick_lower = TickMath.getPrevInitializeTickIndex(current_tick_index.toNumber(), tick_spacing)
-const tick_upper = TickMath.getNextInitializeTickIndex(current_tick_index.toNumber(), tick_spacing)
+const tick_lower = TickMath.getPrevInitializeTickIndex(current_tick_index, tick_spacing)
+const tick_upper = TickMath.getNextInitializeTickIndex(current_tick_index, tick_spacing)
 
 const fix_coin_amount = new BN(1000000000) // 1 SUI
 const fix_amount_a = true
@@ -42,13 +42,11 @@ const liquidity_input = ClmmPoolUtil.estLiquidityAndCoinAmountFromOneAmounts(
   new BN(initialize_sqrt_price),
 )
 
-const amount_a = fix_amount_a ? fix_coin_amount.toNumber() : liquidity_input.coin_amount_limit_a.toNumber()
-const amount_b = fix_amount_a ? liquidity_input.coin_amount_limit_b.toNumber() : fix_coin_amount.toNumber()
+const amount_a = fix_amount_a ? fix_coin_amount.toNumber() : Number(liquidity_input.coin_amount_limit_a)
+const amount_b = fix_amount_a ? Number(liquidity_input.coin_amount_limit_b) : fix_coin_amount.toNumber()
 
-const coinMetadataA = await sdk.FullClient.getCoinMetadata({ coinType: coin_type_a })
-const coinMetadataB = await sdk.FullClient.getCoinMetadata({ coinType: coin_type_b })
 
-const create_pool_payload = sdk.Pool.createPoolPayload({
+const create_pool_payload = await sdk.Pool.createPoolPayload({
   coin_type_a,
   coin_type_b,
   tick_spacing,
@@ -59,8 +57,6 @@ const create_pool_payload = sdk.Pool.createPoolPayload({
   fix_amount_a,
   tick_lower,
   tick_upper,
-  metadata_a: coinMetadataA.id,
-  metadata_b: coinMetadataB.id,
 })
 
 const txn = await sdk.FullClient.sendTransaction(signer, create_pool_payload)
@@ -73,7 +69,7 @@ pool_script::create_pool<SUI, USDC>(
     config,
     pools,
     10,                                    // tick_spacing
-    29189415097064819712,                  // initialize_sqrt_price (1 SUI = 2.5 USDC)
+    922337203685477580,                  // initialize_sqrt_price (1 SUI = 2.5 USDC)
     string::utf8(b"https://example.com/position"),
     clock,
     ctx,
@@ -91,10 +87,10 @@ pool_creator_v3::create_pool_v3<SUI, USDC>(
     config,
     pools,
     10,                                    // tick_spacing
-    29189415097064819712,                  // initialize_price
+    922337203685477580,                  // initialize_price
     string::utf8(b"https://example.com"),
-    0,                                     // tick_lower_idx (full range)
-    443580,                                // tick_upper_idx (full range)
+    4294523666,                            // u32 bits of -443630 (spacing 10)
+    443630,                                // tick_upper_idx (full range, spacing 10)
     coin_a,
     coin_b,
     true,                                  // fix_amount_a

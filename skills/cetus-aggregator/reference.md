@@ -175,7 +175,7 @@ curl --location --request POST \
 | 4000 | Bad Request | Invalid or missing parameters | Verify all required params and coin type formats |
 | 4030 | Forbidden | Authentication failed | Verify request origin and parameters |
 | 5000 | Liquidity not enough | No viable route at requested amount | Reduce amount, try different providers, or split manually |
-| 5040 | Unsupported API version | API version mismatch | Remove version params; use default endpoints |
+| 5040 | Unsupported API version | API version mismatch | Include the supported REST version flag (`v=1999999`); check current server requirements |
 
 ---
 
