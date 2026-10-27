@@ -4,13 +4,15 @@ Claude Code skills for interacting with the [Cetus Protocol](https://www.cetus.z
 
 ## Overview
 
-Cetus Protocol provides three main DeFi primitives on Sui:
+This repository covers five Cetus capabilities on Sui:
 
 - **Aggregator** - Smart order routing across multiple DEX providers for best swap prices
 - **CLMM** (Concentrated Liquidity Market Maker) - Capital-efficient liquidity provision with continuous tick ranges
 - **DLMM** (Dynamic Liquidity Market Maker) - Discrete bin-based liquidity with dynamic fees
+- **Limit Orders** - Escrow tokens for execution at a specified target price
+- **DCA** (Dollar-Cost Averaging) - Recurring token purchases executed by authorized keepers
 
-This repository contains Claude Code skills for all three protocols, enabling AI agents to interact with Cetus programmatically.
+These skills let AI agents quote swaps, manage liquidity, and build limit-order and DCA transactions programmatically.
 
 ## Skills
 
@@ -19,6 +21,8 @@ This repository contains Claude Code skills for all three protocols, enabling AI
 | **[cetus-aggregator](skills/cetus-aggregator/)** | API | Find optimal swap routes across multiple DEX providers and build swap transactions | [README](skills/cetus-aggregator/README.md) · [SKILL.md](skills/cetus-aggregator/SKILL.md) |
 | **[cetus-clmm](skills/cetus-clmm/)** | SDK | Create pools, manage positions, add/remove liquidity, swap tokens, flash loans on CLMM | [README](skills/cetus-clmm/README.md) · [SKILL.md](skills/cetus-clmm/SKILL.md) |
 | **[cetus-dlmm](skills/cetus-dlmm/)** | SDK | Create pools, manage positions with strategies (Spot/Curve/BidAsk), swap on DLMM | [README](skills/cetus-dlmm/README.md) · [SKILL.md](skills/cetus-dlmm/SKILL.md) |
+| **[cetus-limitorder](skills/cetus-limitorder/)** | SDK + Move | Place, query, claim and cancel target-price orders; integrate atomic fills | [README](skills/cetus-limitorder/README.md) · [SKILL.md](skills/cetus-limitorder/SKILL.md) |
+| **[cetus-dca](skills/cetus-dca/)** | SDK + Move | Open, inspect, withdraw and cancel recurring orders; integrate signed keeper execution | [README](skills/cetus-dca/README.md) · [SKILL.md](skills/cetus-dca/SKILL.md) |
 
 ## Quick Comparison
 
@@ -30,6 +34,19 @@ This repository contains Claude Code skills for all three protocols, enabling AI
 | **Integration** | REST API | TypeScript SDK + Move | TypeScript SDK + Move |
 | **Best For** | Traders seeking best rates | Stable pairs, passive LPs | Volatile pairs, market making |
 | **Providers** | Multiple DEX protocols | Cetus CLMM only | Cetus DLMM only |
+
+### Order strategies
+
+| Feature | Limit Orders | DCA |
+|---|---|---|
+| Trigger | Target price and available liquidity | Due cycle plus keeper execution |
+| Time unit | Expiry in milliseconds | Frequency and timestamps in seconds |
+| User controls | Pay amount, minimum target/pay price, expiry | Deposit, cycles, frequency, output bounds |
+| Opening authorization | Wallet owner | Wallet owner + authorized oracle signature |
+| Execution | Atomic pay-coin borrow / target-coin repayment | Authorized keeper + threshold signatures + atomic repayment |
+| Skill | [cetus-limitorder](skills/cetus-limitorder/SKILL.md) | [cetus-dca](skills/cetus-dca/SKILL.md) |
+
+Order objects are shared and indexed. Execution depends on external fillers/keepers; neither strategy guarantees a fill or deploys a background service.
 
 ## Installation
 
@@ -58,6 +75,8 @@ npm install @mysten/sui@2.31.2 blakejs @cetusprotocol/common-sdk@1.4.3 @cetuspro
 
 These are the npm `latest` versions checked on 2026-10-21. The SDKs require `@mysten/sui >=2.28.0`; the examples use 2.31.2. CLMM/DLMM require `blakejs` as a peer dependency. Mainnet configurations are exported by their respective SDK packages. Sui 2.x integrations use gRPC and GraphQL. See [upstream verification](UPSTREAM.md) for sources and validation scope.
 
+For limit orders and DCA, use the dedicated installation commands in their skill guides. Their contract/source snapshots and SDK verification were added on 2026-10-26; see [upstream verification](UPSTREAM.md#limit-order-and-dca-skills-2026-10-26).
+
 ## Environment Variables
 
 | Variable | Required For | Description |
@@ -79,17 +98,25 @@ cetus-skills/
 │   │   ├── README.md            # User-friendly guide
 │   │   ├── SKILL.md             # Agent-optimized reference
 │   │   └── reference/           # Topic-specific SDK & Move examples
-│   └── cetus-dlmm/
-│       ├── README.md            # User-friendly guide
-│       ├── SKILL.md             # Agent-optimized reference
-│       └── reference/           # Topic-specific SDK & Move examples
+│   ├── cetus-dlmm/
+│   │   ├── README.md            # User-friendly guide
+│   │   ├── SKILL.md             # Agent-optimized reference
+│   │   └── reference/           # Topic-specific SDK & Move examples
+│   ├── cetus-limitorder/
+│   │   ├── README.md
+│   │   ├── SKILL.md
+│   │   └── reference/           # User orders, keeper flow, contract ABI/provenance
+│   └── cetus-dca/
+│       ├── README.md
+│       ├── SKILL.md
+│       └── reference/           # User orders, signatures/keepers, contract ABI/provenance
 └── UPSTREAM.md                  # Version snapshot, sources & verification
 ```
 
 Each skill contains:
 - **README.md** - User-friendly documentation with examples and quick start
 - **SKILL.md** - Concise, agent-optimized reference (YAML frontmatter, tables, flows)
-- **reference.md** (Aggregator) or **reference/** (CLMM/DLMM) - Detailed schemas, payloads, and edge cases
+- **reference.md** (Aggregator) or **reference/** (SDK/Move skills) - Detailed schemas, payloads, and edge cases
 
 ## Getting Started
 

@@ -37,3 +37,17 @@ DLMM Move signatures were compared with the [official interface](https://github.
 - Checked local Markdown file links and Git whitespace errors.
 
 No wallet signing, on-chain transaction submission, funded integration test, or Move compilation was performed. Published addresses are verified against the SDK release configuration, not independently resolved from live chain upgrade state. The `swap_v3` transaction-building service and every provider were not individually exercised. Example quote amounts and JSON responses remain illustrative.
+
+## Limit-order and DCA skills (2026-10-26)
+
+Added `cetus-limitorder` and `cetus-dca` from the user-provided local `cetus-clmm-sui` checkout at commit `6909b262aac6b54013df8efd967d359b46512feb`. Read `limitorder/sources/{limit_order,config}.move`, `cetus_dca/sources/{order,config}.move`, and each package's publication metadata. The contract checkout was not modified. Each new skill's contract reference records SHA-256 source fingerprints and exact production entrypoint signatures; test-only helpers are excluded.
+
+Compared published npm `latest` tarballs for [limit-sdk 1.2.6](https://registry.npmjs.org/@cetusprotocol/limit-sdk/1.2.6) and [dca-sdk 1.2.5](https://registry.npmjs.org/@cetusprotocol/dca-sdk/1.2.5), including declarations, builders, utilities, and source-map mainnet configuration. Examples pin common-sdk 1.4.3 and Sui 2.31.2. Limit SDK also requires `blakejs`.
+
+Deployment differences are explicit:
+
+- Local limitorder `Published.toml` / `Move.toml` records v3 (`0x37d628…`), local config source has gate VERSION 4, and limit-sdk 1.2.6 targets configured v4 (`0xd36484…`). ABI/source equality to that target was not verified.
+- Local DCA publication and source gate are v4 (`0xa893af…`); the SDK targets that address but retains `dca.version = 2`. This field is not live deployment/version-gate proof.
+- DCA oracle/keeper signing-service endpoints and the protocol fee-vault object ID are not supplied by SDK config. Skills explain the required authorization and fee-vault discovery rather than inventing them.
+
+Validation for the additions: skill frontmatter validation, local Markdown links, exact production signature comparison, strict TypeScript checking of all 10 new example blocks, and offline SDK builder inspection of 7 paths against the local ABI. The builder smoke checks cover limit-order place/claim/cancel (with fixture pair-indexer lookup), DCA open/withdraw/cancel, inverse-rate encoding and Sui PTB argument layout. This does not test oracle authenticity, keeper authorization, funded simulation, on-chain fills, or contract deployment. No signing, submission, new Move build/test, or source-verification run was performed. Earlier verification results above remain scoped to their original date and SDKs.
