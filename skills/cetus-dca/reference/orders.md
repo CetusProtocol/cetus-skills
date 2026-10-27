@@ -17,24 +17,57 @@ Orders are shared objects discovered through the indexer's user table. Its boole
 
 ## Open an order
 
-Get oracle-signed `timestamp`, `fee_rate`, `per_cycle_in_amount_limit`, frequency/count, and hex signature from an authorized service. Match the signed wallet and input type. See [signature bytes](keeper.md#oracle-opening-authorization). No service URL or signing key is provided by the contract sources.
+Request a fresh signed quote from the official **GET `https://api-sui.cetus.zone/dca/quote`** endpoint documented in the [dca-sdk 1.2.5 README](https://unpkg.com/@cetusprotocol/dca-sdk@1.2.5/README.md). Its query parameters are `in_coin` (input Move type), `freq` (seconds), `count` (cycles), and `sender` (the same wallet as the SDK sender). Check HTTP status, response `code === 200`, and `data` before using the quote.
+
+| Source | Opening parameter |
+|---|---|
+| Request `in_coin`, `freq`, `count`, `sender` | Preserve input type, `cycle_frequency`, `cycle_count`, and SDK sender |
+| `data.amount_in_limit_per_cycle` | `per_cycle_in_amount_limit = String(quote.amount_in_limit_per_cycle)` |
+| `data.fee_rate`, `timestamp`, `signature` | Copy to the same-named parameters |
+| User deposit and output bounds | `in_coin_amount`, `per_cycle_min_out_amount`, `per_cycle_max_out_amount` |
+
+The response does **not** echo frequency/count. Keep the request values; do not read them from the quote or change signed parameters after fetching. `signer` identifies the oracle, not the order creator. The README describes the input limit as a cap, but this local production contract checks `in_amount_per_cycle >= in_amount_limit_per_cycle`; use it as the minimum input constraint. `timestamp` is the signing timestamp in seconds, validated against `oracle_valid_duration`, not a standalone expiry deadline. See [signature bytes](keeper.md#oracle-opening-authorization).
 
 ```typescript
 import type { OpenDcaOrderParams } from '@cetusprotocol/dca-sdk'
 
-// oracleAuthorization comes from the deployment's service; it is not a wallet tx signature.
+const inCoinType = '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC'
+const cycleFrequency = 3600 // seconds; also check current on-chain config minimum
+const cycleCount = 2
+const url = new URL('https://api-sui.cetus.zone/dca/quote')
+url.searchParams.set('in_coin', inCoinType)
+url.searchParams.set('freq', String(cycleFrequency))
+url.searchParams.set('count', String(cycleCount))
+url.searchParams.set('sender', walletAddress)
+const response = await fetch(url)
+if (!response.ok) throw new Error(`DCA quote HTTP ${response.status}`)
+const body = await response.json() as {
+  code: number
+  msg?: string
+  data?: {
+    fee_rate: number
+    amount_in_limit_per_cycle: number | string
+    timestamp: number
+    signature: string
+  }
+}
+if (body.code !== 200 || !body.data) throw new Error(body.msg ?? 'DCA quote unavailable')
+const quote = body.data
+if (typeof quote.amount_in_limit_per_cycle === 'number' && !Number.isSafeInteger(quote.amount_in_limit_per_cycle)) {
+  throw new Error('Quote input limit exceeds JSON safe integer precision')
+}
 const params: OpenDcaOrderParams = {
-  in_coin_type: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+  in_coin_type: inCoinType,
   out_coin_type: '0x2::sui::SUI',
   in_coin_amount: '100000000', // 100 USDC total
-  cycle_frequency: oracleAuthorization.cycle_frequency, // seconds
-  cycle_count: oracleAuthorization.cycle_count,
+  cycle_frequency: cycleFrequency, // preserve request value; absent from response
+  cycle_count: cycleCount, // preserve request value; absent from response
   per_cycle_min_out_amount: '1', // illustrative; derive realistic output bounds
   per_cycle_max_out_amount: '1000000000000',
-  per_cycle_in_amount_limit: oracleAuthorization.per_cycle_in_amount_limit,
-  fee_rate: oracleAuthorization.fee_rate,
-  timestamp: oracleAuthorization.timestamp, // Unix seconds
-  signature: oracleAuthorization.signature, // hex, scheme || sig || pubkey
+  per_cycle_in_amount_limit: String(quote.amount_in_limit_per_cycle),
+  fee_rate: quote.fee_rate,
+  timestamp: quote.timestamp, // Unix seconds
+  signature: quote.signature, // hex, scheme || sig || pubkey
 }
 if (!Number.isSafeInteger(params.cycle_count) || params.cycle_count <= 0) {
   throw new Error('Invalid cycle count')

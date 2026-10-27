@@ -20,7 +20,7 @@ The payload does not include output coin type, total deposit, or output bounds; 
 
 The signature parameter is a **hex string** encoding 97 bytes: `0x00` scheme byte, 64-byte Ed25519 signature, 32-byte public key. It is not the wallet's base64 transaction signature. Address authorization uses `blake2b256(0x00 || public_key)` and the config's oracle ACL. The oracle's public authorization does not provide its private signing capability.
 
-Opening accepts `abs(chain_now_seconds - timestamp) <= oracle_valid_duration` (including a small future timestamp). Fetch fresh service authorization matching the actual sender and signed parameters. Never generate a test signature or reuse an example key for a production order.
+Opening accepts `abs(chain_now_seconds - timestamp) <= oracle_valid_duration` (including a small future timestamp). Fetch fresh opening authorization from GET `https://api-sui.cetus.zone/dca/quote` matching the actual sender and signed parameters; see [request and field mapping](orders.md#open-an-order). Never generate a test signature or reuse an example key for a production order.
 
 ## Keeper threshold authorization
 

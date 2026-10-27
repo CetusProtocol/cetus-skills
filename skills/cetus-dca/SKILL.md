@@ -32,7 +32,8 @@ Version snapshot: 2026-10-26. Configuration is exported by the DCA SDK, not comm
 | Current minimums / policy | `getDcaGlobalConfig()` | Also read config for signature validity and keeper threshold |
 | Whitelisted coins | `getDcaCoinWhiteList(whitelistMode)` | Read mode from config; don't hardcode initialization defaults |
 | Owner orders | `getDcaOrders(wallet)` | Shared indexed orders; finished/canceled history may remain |
-| Open | `dcaOpenOrderPayload(params)` | Requires a valid authorized oracle signature |
+| Opening authorization | GET `https://api-sui.cetus.zone/dca/quote` | Query `in_coin`, `freq`, `count`, `sender`; see [orders](reference/orders.md) |
+| Open | `dcaOpenOrderPayload(params)` | Use fresh quote signature, fee rate, timestamp and input limit |
 | Withdraw proceeds | `withdrawPayload(params)` / `withdrawAll(params[])` | Pending order, owner-only; builders transfer returned coins |
 | Cancel and refund | `dcaCloseOrderPayload(params[])` | Calls `cancel_order`, not object deletion; pending owner only |
 | Keeper cycle | Raw `flash_loan_for_make_deal_v2` + `repay_for_make_deal` | Load [keeper and signatures](reference/keeper.md) |
@@ -47,7 +48,7 @@ Version snapshot: 2026-10-26. Configuration is exported by the DCA SDK, not comm
 - Status is 0 pending, 1 finished, 2 canceled. Pending owners can withdraw accrued output or cancel to receive both balances. Final repayment automatically transfers all accrued output to the owner and marks the order finished; do not send a redundant withdraw/cancel for a finished order.
 - `cancle_order` and `flash_loan_for_make_deal` are deprecated and always abort. Use `cancel_order` and the `_v2` keeper entrypoint. Ignore all `#[test_only]` helpers when integrating production.
 
-Obtain signatures from the deployment's oracle/keeper service; there is no signature endpoint established by these sources. If the service or authorization is missing, report what is needed instead of fabricating a signature. Build unsigned payloads; signing/submitting requires the user's authorization.
+For mainnet opening authorization, call the official GET `https://api-sui.cetus.zone/dca/quote` with `in_coin`, `freq`, `count`, and `sender`. Preserve the request's frequency/count (not echoed in the response); set `per_cycle_in_amount_limit = String(quote.amount_in_limit_per_cycle)` and copy `fee_rate`, `timestamp`, and `signature` from response `data`. Fetch again if signed parameters change or the quote expires. See [orders](reference/orders.md) for HTTP/business-error handling and the complete mapping. Keeper threshold signing is a separate service; its endpoint is not established here. If quote retrieval fails, report the actual error instead of fabricating authorization. Build unsigned payloads; signing/submitting requires the user's authorization.
 
 ## References
 

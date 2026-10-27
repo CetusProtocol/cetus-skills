@@ -20,6 +20,6 @@ Example requests:
 - “Show my DCA orders, next execution times, and accrued output.”
 - “Cancel this pending DCA order and refund the remaining balances.”
 
-Opening requires service-provided oracle authorization; this repository does not include an oracle endpoint or private signing keys. Schedule times are Unix seconds, fees are charged in the input coin, and the first cycle is eligible immediately. Execution depends on authorized keepers and liquidity. Installing a skill does not start a keeper service.
+Opening authorization comes from the official GET `https://api-sui.cetus.zone/dca/quote` endpoint with `in_coin`, `freq`, `count`, and `sender`. The [opening example](reference/orders.md#open-an-order) maps its signed response into SDK parameters; keeper threshold signing is a separate integration. Schedule times are Unix seconds, fees are charged in the input coin, and the first cycle is eligible immediately. Execution depends on authorized keepers and liquidity. Installing a skill does not start a keeper service.
 
 Start with [SKILL.md](SKILL.md), then load [user operations](reference/orders.md), [keeper and signature format](reference/keeper.md), or [contract signatures and deployment provenance](reference/contracts.md). The SDK's close-order builder calls cancellation, and deprecated `cancle_order` / legacy keeper borrow functions must not be used.
